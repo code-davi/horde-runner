@@ -46,11 +46,17 @@ export class PopTexts {
 
 /** Pisca o alvo (ao tomar dano). */
 export function flash(scene: Phaser.Scene, target: { alpha: number }): void {
+  // Um tween começa do valor atual: sem reiniciar, flashes seguidos deixariam a tropa apagada.
+  scene.tweens.killTweensOf(target);
+  target.alpha = 1;
   scene.tweens.add({ targets: target, alpha: 0.3, duration: 70, yoyo: true, repeat: 1 });
 }
 
 /** "Squash" curto: estica e volta (ao mudar de tamanho ou passar por um portão). */
 export function punch(scene: Phaser.Scene, target: { scaleX: number; scaleY: number }): void {
+  scene.tweens.killTweensOf(target);
+  target.scaleX = 1;
+  target.scaleY = 1;
   scene.tweens.add({
     targets: target,
     scaleX: 1.15,

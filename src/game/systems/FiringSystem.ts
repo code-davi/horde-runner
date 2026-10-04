@@ -1,5 +1,5 @@
 import { OFFSCREEN_MARGIN_PX } from '../../core/balance';
-import { advanceCadence, staggeredStart } from '../../core/cadence';
+import { advanceCadence, retrackCadence } from '../../core/cadence';
 import { formationOffsets } from '../../core/formation';
 import { unitShotDamage, type RenderUnit } from '../../core/troop';
 import { weaponStats } from '../../core/weapons';
@@ -39,12 +39,12 @@ export class FiringSystem {
     this.recycleOffscreen();
   }
 
-  /** Recalcula posições e reinicia os relógios quando a tropa ou a arma mudam. */
+  /** Recalcula posições e ajusta os relógios (sem zerá-los) quando a tropa ou a arma mudam. */
   private track(units: readonly RenderUnit[], level: number, intervalMs: number): void {
     this.trackedUnits = units;
     this.trackedLevel = level;
     this.offsets = formationOffsets(units);
-    this.elapsed = units.map((_, index) => staggeredStart(index, intervalMs));
+    this.elapsed = retrackCadence(this.elapsed, units.length, intervalMs);
   }
 
   private recycleOffscreen(): void {

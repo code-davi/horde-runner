@@ -16,3 +16,19 @@ export function advanceCadence(
 export function staggeredStart(index: number, intervalMs: number): number {
   return ((index * GOLDEN_RATIO_FRACTION) % 1) * intervalMs;
 }
+
+/**
+ * Relógios de disparo depois que a tropa mudou: unidades que continuam mantêm o progresso
+ * (limitado ao novo intervalo) e só as novas começam escalonadas. Sem isso, cada dano ou
+ * portão zeraria o relógio da unidade mais forte e ela quase nunca atiraria em combate.
+ */
+export function retrackCadence(
+  previous: readonly number[],
+  unitCount: number,
+  intervalMs: number,
+): number[] {
+  return Array.from({ length: unitCount }, (_, index) => {
+    const kept = previous[index];
+    return kept === undefined ? staggeredStart(index, intervalMs) : Math.min(kept, intervalMs);
+  });
+}

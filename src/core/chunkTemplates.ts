@@ -2,6 +2,7 @@ import {
   BOSS_HORDE_BUDGET_DIVISOR,
   DIVIDE_VALUES,
   ENEMIES,
+  MAX_HORDE_SPAWNS_PER_CHUNK,
   HORDE_WAVES,
   HORDE_WAVE_SPREAD,
   KNIGHT_GATE_MIN_CHUNK,
@@ -55,14 +56,14 @@ export function fillTemplate(template: TemplateKind, ctx: ChunkContext, rng: Rng
   }
 }
 
-/** Horda do trecho: gasta o orçamento (distância + pressão) em 2–3 ondas agrupadas. */
+/** Horda do trecho: gasta o orçamento (distância + pressão) em 2–3 ondas, até um teto de monstros. */
 export function fillHorde(ctx: ChunkContext, rng: Rng): EnemySpawn[] {
   const canSpawnStrong = ctx.index >= STRONG_ENEMY_MIN_CHUNK;
   const strongChance = strongEnemyChance(pressureLevel(ctx.troopCount));
   const waveCenters = createWaveCenters(rng);
   const spawns: EnemySpawn[] = [];
   let budget = hordeBudget(ctx.index, ctx.troopCount);
-  while (budget >= ENEMIES.common.cost) {
+  while (budget >= ENEMIES.common.cost && spawns.length < MAX_HORDE_SPAWNS_PER_CHUNK) {
     const strong = canSpawnStrong && budget >= ENEMIES.strong.cost && rng.next() < strongChance;
     const kind: EnemyKind = strong ? 'strong' : 'common';
     spawns.push(spawnInWave(kind, rng.pick(waveCenters), rng));

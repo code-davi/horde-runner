@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HORDE_WAVE_SPREAD } from '../../src/core/balance';
+import { HORDE_WAVE_SPREAD, MAX_HORDE_SPAWNS_PER_CHUNK } from '../../src/core/balance';
 import { fillHorde, fillTemplate } from '../../src/core/chunkTemplates';
 import type { Gate } from '../../src/core/gates';
 import { createRng } from '../../src/core/rng';
@@ -44,6 +44,15 @@ describe('negative gates scale with the troop', () => {
 });
 
 describe('fillHorde', () => {
+  it('caps the horde size for giant troops (review: generation must not grow with the troop)', () => {
+    const started = performance.now();
+
+    const spawns = fillHorde({ index: 20, troopCount: 1e9 }, createRng(1));
+
+    expect(spawns.length).toBeLessThanOrEqual(MAX_HORDE_SPAWNS_PER_CHUNK);
+    expect(performance.now() - started).toBeLessThan(50);
+  });
+
   it('groups the horde into at most 3 waves', () => {
     const rng = createRng(21);
 

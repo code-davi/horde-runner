@@ -75,6 +75,8 @@ export const PROJECTILE_POOL_SIZE = 400;
 export const OFFSCREEN_MARGIN_PX = 120;
 /** Máximo de inimigos ao mesmo tempo; acima disso, novos spawns são ignorados. */
 export const ENEMY_POOL_SIZE = 300;
+/** Máximo de monstros gerados por trecho: tropas gigantes não podem travar a geração (revisão). */
+export const MAX_HORDE_SPAWNS_PER_CHUNK = 120;
 
 /** Máximo de unidades de herói desenhadas; acima disso as unidades do maior nível ganham peso extra. */
 export const MAX_RENDERED_UNITS = 120;

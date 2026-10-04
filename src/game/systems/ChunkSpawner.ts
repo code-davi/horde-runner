@@ -6,10 +6,8 @@ import type { Rng } from '../../core/rng';
 import { GAME_HEIGHT, GAME_WIDTH } from '../dimensions';
 import { GateRow } from '../entities/GateRow';
 import { WeaponCrate } from '../entities/WeaponCrate';
+import { advanceFrontier, shouldGenerateChunk } from './chunkTiming';
 import type { EnemySystem } from './EnemySystem';
-
-/** Gera o próximo trecho quando o topo do último está a menos disso da tela, em px. */
-const SPAWN_LOOKAHEAD_PX = 200;
 
 /** Transforma os trechos do gerador em portões, caixas e monstros que descem pela tela. */
 export class ChunkSpawner {
@@ -25,6 +23,8 @@ export class ChunkSpawner {
   private frontierY = 0;
   private current!: Chunk;
   private bossActive = false;
+  /** Um trecho de chefão foi gerado e o chefão ainda não foi derrotado. */
+  private bossPending = false;
 
   /** `troopCount` informa a tropa atual: cada trecho é gerado conhecendo-a (ADR 0020). */
   constructor(
@@ -60,12 +60,19 @@ export class ChunkSpawner {
   /** Chefão derrotado: o caminho volta a andar. */
   endBoss(): void {
     this.bossActive = false;
+    this.bossPending = false;
   }
 
   update(deltaMs: number): void {
     const dy = (this.scrollSpeed * deltaMs) / 1000;
-    this.frontierY += dy;
-    while (this.frontierY > -SPAWN_LOOKAHEAD_PX) this.spawnNext();
+    this.frontierY = advanceFrontier({
+      frontierY: this.frontierY,
+      dy,
+      bossPending: this.bossPending,
+    });
+    while (shouldGenerateChunk({ frontierY: this.frontierY, bossPending: this.bossPending })) {
+      this.spawnNext();
+    }
     this.gateRows.forEach((row) => row.moveTo(row.y + dy));
     this.crates.forEach((crate) => crate.moveTo(crate.y + dy));
     this.recycle();
@@ -84,7 +91,10 @@ export class ChunkSpawner {
     for (const { kind, x, offset } of chunk.enemies) {
       this.enemies.spawn(kind, x * GAME_WIDTH, top + offset * CHUNK_LENGTH_PX);
     }
-    if (chunk.bossNumber !== null) this.onBossChunk?.(chunk.bossNumber, top);
+    if (chunk.bossNumber !== null) {
+      this.bossPending = true;
+      this.onBossChunk?.(chunk.bossNumber, top);
+    }
   }
 
   private placeGates(chunk: Chunk, top: number): void {

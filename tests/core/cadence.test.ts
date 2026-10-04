@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { advanceCadence, staggeredStart } from '../../src/core/cadence';
+import { advanceCadence, retrackCadence, staggeredStart } from '../../src/core/cadence';
 
 describe('advanceCadence', () => {
   it('fires nothing before the interval is reached', () => {
@@ -29,5 +29,19 @@ describe('staggeredStart', () => {
 
   it('is deterministic', () => {
     expect(staggeredStart(7, 333)).toBe(staggeredStart(7, 333));
+  });
+});
+
+describe('retrackCadence', () => {
+  it('keeps the progress of existing units when the troop changes', () => {
+    expect(retrackCadence([900, 300], 3, 1000)).toEqual([900, 300, staggeredStart(2, 1000)]);
+  });
+
+  it('drops clocks of units that no longer exist', () => {
+    expect(retrackCadence([900, 300, 50], 1, 1000)).toEqual([900]);
+  });
+
+  it('clamps progress to a shorter interval after a weapon upgrade', () => {
+    expect(retrackCadence([900], 1, 500)).toEqual([500]);
   });
 });
