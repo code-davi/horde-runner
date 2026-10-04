@@ -60,6 +60,8 @@ export const PROJECTILE_SPEED = 900;
 export const PROJECTILE_POOL_SIZE = 400;
 /** Margem fora da tela a partir da qual objetos são reciclados, em px. */
 export const OFFSCREEN_MARGIN_PX = 120;
+/** Máximo de inimigos ao mesmo tempo; acima disso, novos spawns são ignorados. */
+export const ENEMY_POOL_SIZE = 300;
 
 /** Máximo de unidades de herói desenhadas; acima disso as unidades do maior nível ganham peso extra. */
 export const MAX_RENDERED_UNITS = 120;

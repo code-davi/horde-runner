@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import { SQUAD_FOLLOW_SPEED, SQUAD_MAX_X, SQUAD_MIN_X, SQUAD_Y } from '../../core/balance';
+import type { Circle } from '../../core/geometry';
 import { approach, clamp } from '../../core/motion';
 import { initialTroop, renderUnits, type RenderUnit, type TroopState } from '../../core/troop';
 import { GAME_WIDTH } from '../dimensions';
@@ -28,6 +29,11 @@ export class Squad {
 
   get radius(): number {
     return this.view.radius;
+  }
+
+  /** Círculo que envolve a tropa inteira, para colisões por distância. */
+  get circle(): Circle {
+    return { x: this.x, y: this.y, radius: this.radius };
   }
 
   /** Troca o estado de regra; recalcula as unidades só se a contagem mudou. */
