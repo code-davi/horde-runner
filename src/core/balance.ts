@@ -87,6 +87,19 @@ export const TEMPLATE_WEIGHTS: Record<TemplateKind, readonly [number, number]> =
   hordeOnly: [20, 15],
 };
 
+/** Trechos iniciais que funcionam como tutorial implícito (trava 5). */
+export const TUTORIAL_CHUNKS = 4;
+/** Máximo de trechos punitivos seguidos (trava 3). */
+export const PUNITIVE_STREAK_LIMIT = 2;
+/** Tentativas de sortear um trecho justo antes de cair no molde seguro. */
+export const MAX_GENERATION_ATTEMPTS = 20;
+/** Chance de um inimigo da horda ser forte, quando permitido. */
+export const STRONG_ENEMY_CHANCE = 0.25;
+/** A horda que acompanha o chefão usa 1/N do orçamento, só com comuns. */
+export const BOSS_HORDE_BUDGET_DIVISOR = 4;
+/** A partir de qual trecho o portão "+1 Cavaleiro" pode aparecer. */
+export const KNIGHT_GATE_MIN_CHUNK = 8;
+
 /** Quanto "custo de inimigo" a horda de um trecho pode gastar. */
 export function threatBudget(chunkIndex: number): number {
   return 8 + 3 * chunkIndex;
