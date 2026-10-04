@@ -1,6 +1,6 @@
 # Spec — Padrões de código
 
-> **Status:** rascunho (aguardando revisão) · **Data:** 2026-10-03
+> **Status:** aprovado · **Data:** 2026-10-03
 > **Vale para:** todo o código do projeto, em todos os subprojetos. **Decisões:** ADR 0017 (tipagem e reaproveitamento), ADR 0018 (padrões verificados por ferramenta).
 
 ## 1. Princípios
