@@ -1,0 +1,22 @@
+# Hooks de git: docs/specs/2026-10-03-padroes-de-codigo.md §10 (ADR 0019).
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit
+
+pre-commit:
+  parallel: true
+  commands:
+    eslint:
+      glob: '*.{ts,js}'
+      run: npx eslint {staged_files}
+    prettier:
+      glob: '*.{ts,js,json,yml,yaml,html,css}'
+      run: npx prettier --check {staged_files}
+    typecheck:
+      run: npm run typecheck
+
+pre-push:
+  commands:
+    test:
+      run: npm test

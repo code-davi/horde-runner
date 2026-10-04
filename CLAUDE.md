@@ -23,6 +23,7 @@ Todo conceito de game dev novo introduzido no código ganha (ou atualiza) um arq
 ## Padrões de código (obrigatório)
 
 Siga `docs/specs/2026-10-03-padroes-de-codigo.md`. Resumo:
+
 - Limites verificados por ESLint (quebram o CI): arquivo ≤ 200 linhas, função ≤ 40, complexidade ≤ 10, aninhamento ≤ 3, ≤ 3 parâmetros, sem `any`, sem `console`, `eslint-disable` só com justificativa.
 - Uma responsabilidade por arquivo e por função; nomes que dispensam comentário; sem barrels.
 - Tipos junto do módulo dono; unions discriminadas por `kind`; estado imutável; tabelas `as const satisfies` com tipos derivados (ADR 0017).
