@@ -46,6 +46,14 @@ export function subtractGateRange(chunkIndex: number): [number, number] {
 /** Coordenada x que divide a faixa esquerda da direita. */
 export const LANE_SPLIT_X = 360;
 
+/** Linha (y) onde a tropa fica na tela. */
+export const SQUAD_Y = 1100;
+/** Limites horizontais do centro da tropa. */
+export const SQUAD_MIN_X = 80;
+export const SQUAD_MAX_X = 640;
+/** Velocidade máxima com que a tropa segue o dedo, em px/s. */
+export const SQUAD_FOLLOW_SPEED = 2200;
+
 /** Máximo de unidades de herói desenhadas; acima disso as unidades do maior nível ganham peso extra. */
 export const MAX_RENDERED_UNITS = 120;
 /** Distância base entre heróis na formação, em px. */
