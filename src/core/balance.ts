@@ -42,3 +42,10 @@ export function subtractGateRange(chunkIndex: number): [number, number] {
 
 /** Coordenada x que divide a faixa esquerda da direita. */
 export const LANE_SPLIT_X = 360;
+
+/** Máximo de unidades de herói desenhadas; acima disso as unidades do maior nível ganham peso extra. */
+export const MAX_RENDERED_UNITS = 120;
+/** Distância base entre heróis na formação, em px. */
+export const FORMATION_SPACING = 22;
+/** Maior delta de frame aceito, em ms (evita "teletransporte" ao voltar de outro app). */
+export const MAX_FRAME_DELTA_MS = 50;
