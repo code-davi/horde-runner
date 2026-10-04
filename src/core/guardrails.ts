@@ -1,4 +1,4 @@
-import { BOSS_EVERY, PUNITIVE_STREAK_LIMIT, TUTORIAL_CHUNKS, minExpectedTroop } from './balance';
+import { BOSS_EVERY, PUNITIVE_STREAK_LIMIT, TUTORIAL_CHUNKS } from './balance';
 import type { Chunk } from './chunks';
 import { PUNITIVE_TEMPLATES, type TemplateKind } from './difficulty';
 import { isGoodGate } from './gates';
@@ -23,20 +23,20 @@ export function bestPathResult(chunk: Chunk, startCount: number): number {
   }, startCount);
 }
 
-/** Números das travas de justiça (1–5) que o candidato viola; [] se estiver justo. */
-export function violatedGuardrails(history: readonly Chunk[], candidate: Chunk): number[] {
+/** Números das travas de justiça (1–5) que o candidato viola com a tropa atual; [] se estiver justo. */
+export function violatedGuardrails(
+  history: readonly Chunk[],
+  candidate: Chunk,
+  troopCount: number,
+): number[] {
   const checks: [number, boolean][] = [
-    [1, hasSurvivablePath(candidate)],
+    [1, bestPathResult(candidate, troopCount) > 0],
     [2, lesserEvilIsImprovable(candidate)],
     [3, respectsPunitiveStreak(history, candidate)],
     [4, helpsBeforeBoss(candidate)],
     [5, isTutorialFriendly(candidate)],
   ];
   return checks.filter(([, ok]) => !ok).map(([rule]) => rule);
-}
-
-function hasSurvivablePath(chunk: Chunk): boolean {
-  return bestPathResult(chunk, minExpectedTroop(chunk.index)) > 0;
 }
 
 function lesserEvilIsImprovable(chunk: Chunk): boolean {

@@ -17,10 +17,10 @@ export const TIER_DAMAGE_BONUS = 0.15;
 
 export const WEAPON_LEVELS = [
   { name: 'Estilingue', damage: 1, shotsPerSecond: 1 },
-  { name: 'Arco', damage: 1.5, shotsPerSecond: 2 },
-  { name: 'Besta', damage: 2.25, shotsPerSecond: 3 },
-  { name: 'Cajado', damage: 3.4, shotsPerSecond: 3 },
-  { name: 'Canhão', damage: 5, shotsPerSecond: 3 },
+  { name: 'Arco', damage: 1.5, shotsPerSecond: 1.5 },
+  { name: 'Besta', damage: 2.25, shotsPerSecond: 1.5 },
+  { name: 'Cajado', damage: 3.4, shotsPerSecond: 2 },
+  { name: 'Canhão', damage: 5, shotsPerSecond: 2 },
 ] as const;
 
 /** Multiplicador de dano por nível acima do último da tabela. */
@@ -31,7 +31,12 @@ export const GATE_HIT_INCREMENT = 1;
 /** Vida da caixa de arma, em acertos de projétil. */
 export const WEAPON_CRATE_HP = 20;
 export const MULTIPLY_VALUES = [2, 3] as const;
-export const DIVIDE_VALUE = 2;
+export const DIVIDE_VALUES = [2, 3] as const;
+/** Teto de um portão de soma atingido por tiros: máx(MULTIPLIER × valor inicial, MIN_CAP) (ADR 0021). */
+export const GATE_SHOT_CAP_MULTIPLIER = 2;
+export const GATE_SHOT_MIN_CAP = 10;
+/** Um portão -N tira entre 10% e 40% da tropa atual, se isso for maior que a faixa por distância (ADR 0020). */
+export const NEGATIVE_GATE_TROOP_SHARE = [0.1, 0.4] as const;
 
 /** Faixa [mínimo, máximo] do N de um portão `+N` no trecho informado. */
 export function addGateRange(chunkIndex: number): [number, number] {
@@ -63,7 +68,7 @@ export const SQUAD_MAX_X = 640;
 export const SQUAD_FOLLOW_SPEED = 2200;
 
 /** Velocidade dos projéteis, em px/s (para cima). */
-export const PROJECTILE_SPEED = 900;
+export const PROJECTILE_SPEED = 700;
 /** Máximo de projéteis ao mesmo tempo; acima disso, novos disparos são ignorados. */
 export const PROJECTILE_POOL_SIZE = 400;
 /** Margem fora da tela a partir da qual objetos são reciclados, em px. */
@@ -79,11 +84,11 @@ export const FORMATION_SPACING = 22;
 export const MAX_FRAME_DELTA_MS = 50;
 
 export const ENEMIES = {
-  common: { hp: 3, speed: 1.0, heroesLost: 1, points: 10, cost: 1, radius: 18 },
-  strong: { hp: 40, speed: 0.6, heroesLost: 5, points: 50, cost: 8, radius: 32 },
+  common: { hp: 6, speed: 1.0, heroesLost: 1, points: 10, cost: 1, radius: 18 },
+  strong: { hp: 80, speed: 0.6, heroesLost: 5, points: 50, cost: 8, radius: 32 },
 } as const satisfies Record<string, EnemyDef>;
 
-export const BOSS = { baseHp: 400, hpGrowth: 1.6, speed: 0.35, pointsPerBoss: 500, radius: 70 };
+export const BOSS = { baseHp: 800, hpGrowth: 1.6, speed: 0.35, pointsPerBoss: 500, radius: 70 };
 
 /** Velocidade de caminhada de um inimigo com `speed` 1, em px/s (somada à rolagem). */
 export const ENEMY_BASE_WALK_SPEED = 40;
@@ -118,8 +123,6 @@ export const TUTORIAL_CHUNKS = 4;
 export const PUNITIVE_STREAK_LIMIT = 2;
 /** Tentativas de sortear um trecho justo antes de cair no molde seguro. */
 export const MAX_GENERATION_ATTEMPTS = 20;
-/** Chance de um inimigo da horda ser forte, quando permitido. */
-export const STRONG_ENEMY_CHANCE = 0.25;
 /** A horda que acompanha o chefão usa 1/N do orçamento, só com comuns. */
 export const BOSS_HORDE_BUDGET_DIVISOR = 4;
 /** A partir de qual trecho o portão "+1 Cavaleiro" pode aparecer. */
@@ -130,7 +133,13 @@ export function threatBudget(chunkIndex: number): number {
   return 8 + 3 * chunkIndex;
 }
 
-/** Menor tropa esperada num trecho; usada pela trava de justiça 1. */
-export function minExpectedTroop(chunkIndex: number): number {
-  return Math.max(1, 2 * chunkIndex);
-}
+/** Tropa a partir da qual cada nível de pressão começa (ADR 0020). */
+export const PRESSURE_THRESHOLDS = [50, 250, 1000] as const;
+/** Por nível de pressão (0–3). */
+export const STRONG_CHANCE_BY_PRESSURE = [0.25, 0.35, 0.45, 0.6] as const;
+export const PUNITIVE_MULTIPLIER_BY_PRESSURE = [1, 1.5, 2, 3] as const;
+/** Com pressão ≥ 1, a horda ganha essa fração da tropa como orçamento extra. */
+export const HORDE_TROOP_SHARE = 0.1;
+/** Quantidade de ondas por trecho e quanto do trecho (0–1) cada onda ocupa. */
+export const HORDE_WAVES = [2, 3] as const;
+export const HORDE_WAVE_SPREAD = 0.12;

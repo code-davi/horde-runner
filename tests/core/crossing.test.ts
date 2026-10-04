@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { GatePlacement } from '../../src/core/chunks';
 import { resolveRowCrossing } from '../../src/core/crossing';
+import { createSumGate } from '../../src/core/gates';
 
-const left: GatePlacement = { lane: 'left', row: 1, gate: { kind: 'sum', value: 5 } };
+const left: GatePlacement = { lane: 'left', row: 1, gate: createSumGate(5) };
 const right: GatePlacement = { lane: 'right', row: 1, gate: { kind: 'divide', value: 2 } };
 
 describe('resolveRowCrossing', () => {

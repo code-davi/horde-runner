@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { HERO_TIERS } from '../../src/core/balance';
+import { createSumGate } from '../../src/core/gates';
 import {
   applyGate,
   initialTroop,
@@ -26,11 +27,11 @@ describe('initialTroop', () => {
 
 describe('applyGate', () => {
   it('adds heroes with a positive sum gate', () => {
-    expect(applyGate(troop(1), { kind: 'sum', value: 5 }).count).toBe(6);
+    expect(applyGate(troop(1), createSumGate(5)).count).toBe(6);
   });
 
   it('never goes below zero with a negative sum gate', () => {
-    expect(applyGate(troop(5), { kind: 'sum', value: -8 }).count).toBe(0);
+    expect(applyGate(troop(5), createSumGate(-8)).count).toBe(0);
   });
 
   it('multiplies heroes', () => {

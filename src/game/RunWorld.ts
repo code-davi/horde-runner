@@ -33,7 +33,10 @@ export class RunWorld {
     });
     this.firing = new FiringSystem(projectiles);
     this.enemies = new EnemySystem(scene);
-    this.spawner = new ChunkSpawner(scene, createRng(seed), this.enemies);
+    this.spawner = new ChunkSpawner(scene, createRng(seed), {
+      enemies: this.enemies,
+      troopCount: () => this.squad.state.count,
+    });
     const squad = this.squad;
     this.collisions = new CollisionSystem(scene, {
       projectiles,

@@ -20,14 +20,21 @@ export class ChunkSpawner {
   private readonly scene: Phaser.Scene;
   private readonly generator: ChunkGenerator;
   private readonly enemies: EnemySystem;
+  private readonly troopCount: () => number;
   /** y (na tela) do topo do último trecho gerado; cresce conforme o caminho rola. */
   private frontierY = 0;
   private current!: Chunk;
 
-  constructor(scene: Phaser.Scene, rng: Rng, enemies: EnemySystem) {
+  /** `troopCount` informa a tropa atual: cada trecho é gerado conhecendo-a (ADR 0020). */
+  constructor(
+    scene: Phaser.Scene,
+    rng: Rng,
+    deps: { enemies: EnemySystem; troopCount: () => number },
+  ) {
     this.scene = scene;
     this.generator = new ChunkGenerator(rng);
-    this.enemies = enemies;
+    this.enemies = deps.enemies;
+    this.troopCount = deps.troopCount;
     this.spawnNext();
   }
 
@@ -49,7 +56,7 @@ export class ChunkSpawner {
   }
 
   private spawnNext(): void {
-    const chunk = this.generator.next();
+    const chunk = this.generator.next(this.troopCount());
     const top = this.frontierY - CHUNK_LENGTH_PX;
     this.frontierY = top;
     this.current = chunk;

@@ -6,15 +6,15 @@ describe('enemyDef', () => {
     expect(enemyDef('strong').heroesLost).toBe(5);
   });
 
-  it('a common enemy removes 1 hero and has 3 hp', () => {
-    expect(enemyDef('common')).toMatchObject({ heroesLost: 1, hp: 3 });
+  it('a common enemy removes 1 hero and has 6 hp', () => {
+    expect(enemyDef('common')).toMatchObject({ heroesLost: 1, hp: 6 });
   });
 });
 
 describe('boss', () => {
-  it('hp grows 60% per boss starting from 400', () => {
-    expect(bossHp(1)).toBeCloseTo(640);
-    expect(bossHp(2)).toBeCloseTo(1024);
+  it('hp grows 60% per boss starting from 800', () => {
+    expect(bossHp(1)).toBeCloseTo(1280);
+    expect(bossHp(2)).toBeCloseTo(2048);
   });
 
   it('is worth 500 points per boss number', () => {

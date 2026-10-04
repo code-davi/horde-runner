@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { threatBudget } from '../../src/core/balance';
-import { bossNumberAt, isBossChunk, scrollSpeed, templateWeights } from '../../src/core/difficulty';
+import {
+  bossNumberAt,
+  hordeBudget,
+  isBossChunk,
+  pressureLevel,
+  scrollSpeed,
+  strongEnemyChance,
+  templateWeights,
+} from '../../src/core/difficulty';
 
 describe('boss chunks', () => {
   it('every 8th chunk is a boss chunk', () => {
@@ -16,26 +23,65 @@ describe('boss chunks', () => {
   });
 });
 
+describe('pressureLevel', () => {
+  it('follows the hero tier milestones', () => {
+    expect(pressureLevel(1)).toBe(0);
+    expect(pressureLevel(49)).toBe(0);
+    expect(pressureLevel(50)).toBe(1);
+    expect(pressureLevel(249)).toBe(1);
+    expect(pressureLevel(250)).toBe(2);
+    expect(pressureLevel(1000)).toBe(3);
+    expect(pressureLevel(2_000_000)).toBe(3);
+  });
+
+  it('makes strong enemies more common', () => {
+    expect(strongEnemyChance(0)).toBe(0.25);
+    expect(strongEnemyChance(3)).toBe(0.6);
+  });
+});
+
 describe('templateWeights', () => {
   it('punitive templates do not appear at the start', () => {
-    expect(templateWeights(1).lesserEvil).toBe(0);
-    expect(templateWeights(1).obstacleCorridor).toBe(0);
+    expect(templateWeights(1, 0).lesserEvil).toBe(0);
+    expect(templateWeights(1, 3).obstacleCorridor).toBe(0);
   });
 
   it('reaches the late-game weights at chunk 30', () => {
-    expect(templateWeights(30).classicPair).toBe(15);
-    expect(templateWeights(30).lesserEvil).toBe(12);
+    expect(templateWeights(30, 0).classicPair).toBe(15);
+    expect(templateWeights(30, 0).lesserEvil).toBe(12);
+  });
+
+  it('multiplies only the punitive weights by the troop pressure', () => {
+    expect(templateWeights(30, 3).lesserEvil).toBe(36);
+    expect(templateWeights(30, 3).obstacleCorridor).toBe(36);
+    expect(templateWeights(30, 3).classicPair).toBe(15);
   });
 
   it('stays at the late-game weights after chunk 30', () => {
-    expect(templateWeights(100)).toEqual(templateWeights(30));
+    expect(templateWeights(100, 1)).toEqual(templateWeights(30, 1));
   });
 
   it('interpolates between start and end', () => {
-    const weight = templateWeights(16).classicPair;
+    const weight = templateWeights(16, 0).classicPair;
 
     expect(weight).toBeGreaterThan(15);
     expect(weight).toBeLessThan(30);
+  });
+});
+
+describe('hordeBudget', () => {
+  it('uses only the distance while the troop is small', () => {
+    expect(hordeBudget(1, 10)).toBe(11);
+  });
+
+  it('adds 10% of the troop once the pressure starts', () => {
+    expect(hordeBudget(1, 500)).toBe(61);
+  });
+
+  it('never decreases along the run', () => {
+    const budgets = Array.from({ length: 500 }, (_, i) => hordeBudget(i + 1, 30));
+
+    budgets.slice(1).forEach((budget, i) => expect(budget).toBeGreaterThanOrEqual(budgets[i]!));
   });
 });
 
@@ -46,13 +92,5 @@ describe('scrollSpeed', () => {
 
   it('caps at +50%', () => {
     expect(scrollSpeed(1000)).toBe(150);
-  });
-});
-
-describe('threatBudget', () => {
-  it('never decreases', () => {
-    const budgets = Array.from({ length: 500 }, (_, i) => threatBudget(i + 1));
-
-    budgets.slice(1).forEach((budget, i) => expect(budget).toBeGreaterThanOrEqual(budgets[i]!));
   });
 });

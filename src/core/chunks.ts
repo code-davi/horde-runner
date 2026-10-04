@@ -4,8 +4,14 @@ import {
   PUNITIVE_STREAK_LIMIT,
   TUTORIAL_CHUNKS,
 } from './balance';
-import { bossHorde, fillHorde, fillTemplate } from './chunkTemplates';
-import { bossNumberAt, isBossChunk, templateWeights, type TemplateKind } from './difficulty';
+import { bossHorde, fillHorde, fillTemplate, type ChunkContext } from './chunkTemplates';
+import {
+  bossNumberAt,
+  isBossChunk,
+  pressureLevel,
+  templateWeights,
+  type TemplateKind,
+} from './difficulty';
 import type { EnemyKind } from './enemies';
 import type { Gate } from './gates';
 import { violatedGuardrails } from './guardrails';
@@ -50,9 +56,11 @@ export class ChunkGenerator {
     this.rng = rng;
   }
 
-  next(): Chunk {
+  /** Próximo trecho, ajustado à tropa atual (ADR 0020). */
+  next(troopCount: number): Chunk {
     this.index += 1;
-    const chunk = isBossChunk(this.index) ? this.bossChunk() : this.fairChunk();
+    const ctx: ChunkContext = { index: this.index, troopCount };
+    const chunk = isBossChunk(this.index) ? this.bossChunk() : this.fairChunk(ctx);
     this.recent.push(chunk);
     if (this.recent.length > PUNITIVE_STREAK_LIMIT) this.recent.shift();
     return chunk;
@@ -69,27 +77,27 @@ export class ChunkGenerator {
     };
   }
 
-  private fairChunk(): Chunk {
+  private fairChunk(ctx: ChunkContext): Chunk {
     for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt++) {
-      const candidate = this.build(this.chooseTemplate());
-      if (violatedGuardrails(this.recent, candidate).length === 0) return candidate;
+      const candidate = this.build(this.chooseTemplate(ctx), ctx);
+      if (violatedGuardrails(this.recent, candidate, ctx.troopCount).length === 0) return candidate;
     }
-    return this.build(this.isPreBoss() ? 'weaponCrate' : 'hordeOnly');
+    return this.build(this.isPreBoss() ? 'weaponCrate' : 'hordeOnly', ctx);
   }
 
-  private chooseTemplate(): TemplateKind {
+  private chooseTemplate(ctx: ChunkContext): TemplateKind {
     if (this.isPreBoss()) return this.rng.pick(PRE_BOSS_TEMPLATES);
     if (this.index <= TUTORIAL_CHUNKS) return this.rng.pick(TUTORIAL_TEMPLATES);
-    return this.rng.weighted(templateWeights(this.index));
+    return this.rng.weighted(templateWeights(this.index, pressureLevel(ctx.troopCount)));
   }
 
   private isPreBoss(): boolean {
     return this.index % BOSS_EVERY === BOSS_EVERY - 1;
   }
 
-  private build(template: TemplateKind): Chunk {
-    const content = fillTemplate(template, this.index, this.rng);
-    const enemies = fillHorde(this.index, this.rng);
+  private build(template: TemplateKind, ctx: ChunkContext): Chunk {
+    const content = fillTemplate(template, ctx, this.rng);
+    const enemies = fillHorde(ctx, this.rng);
     return { index: this.index, template, ...content, enemies, bossNumber: null };
   }
 }
