@@ -78,7 +78,7 @@ export const ENEMIES = {
 export const BOSS = { baseHp: 400, hpGrowth: 1.6, speed: 0.35, pointsPerBoss: 500, radius: 70 };
 
 /** Velocidade de caminhada de um inimigo com `speed` 1, em px/s (somada à rolagem). */
-export const ENEMY_BASE_WALK_SPEED = 80;
+export const ENEMY_BASE_WALK_SPEED = 40;
 /** Quantos px de rolagem valem 1 metro no score. */
 export const PX_PER_METER = 100;
 
@@ -87,7 +87,7 @@ export const BOSS_EVERY = 8;
 /** Primeiro trecho em que inimigos fortes podem aparecer. */
 export const STRONG_ENEMY_MIN_CHUNK = 5;
 /** Velocidade de rolagem do caminho no trecho 1, em px/s. */
-export const BASE_SCROLL_SPEED = 120;
+export const BASE_SCROLL_SPEED = 100;
 export const SPEED_GROWTH_PER_CHUNK = 0.01;
 export const MAX_SPEED_BONUS = 0.5;
 /** Trecho em que os pesos dos moldes chegam aos valores finais. */

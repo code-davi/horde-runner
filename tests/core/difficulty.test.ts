@@ -41,11 +41,11 @@ describe('templateWeights', () => {
 
 describe('scrollSpeed', () => {
   it('starts at the base speed', () => {
-    expect(scrollSpeed(1)).toBe(120);
+    expect(scrollSpeed(1)).toBe(100);
   });
 
   it('caps at +50%', () => {
-    expect(scrollSpeed(1000)).toBe(180);
+    expect(scrollSpeed(1000)).toBe(150);
   });
 });
 
