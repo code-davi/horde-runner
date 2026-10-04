@@ -97,6 +97,8 @@ export const PX_PER_METER = 100;
 
 /** Um chefão a cada N trechos (trechos 8, 16, 24...). */
 export const BOSS_EVERY = 8;
+/** Quando o chefão chega a este y, o caminho para até ele ser derrotado. */
+export const BOSS_ARENA_Y = 220;
 /** Primeiro trecho em que inimigos fortes podem aparecer. */
 export const STRONG_ENEMY_MIN_CHUNK = 5;
 /** Velocidade de rolagem do caminho no trecho 1, em px/s. */

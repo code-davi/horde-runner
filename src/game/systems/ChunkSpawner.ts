@@ -24,6 +24,7 @@ export class ChunkSpawner {
   /** y (na tela) do topo do último trecho gerado; cresce conforme o caminho rola. */
   private frontierY = 0;
   private current!: Chunk;
+  private bossActive = false;
 
   /** `troopCount` informa a tropa atual: cada trecho é gerado conhecendo-a (ADR 0020). */
   constructor(
@@ -42,8 +43,23 @@ export class ChunkSpawner {
     return this.current;
   }
 
+  /** Velocidade de rolagem em px/s; zero enquanto o chefão está na arena. */
   get scrollSpeed(): number {
-    return scrollSpeed(this.current.index);
+    return this.bossActive ? 0 : scrollSpeed(this.current.index);
+  }
+
+  get isBossActive(): boolean {
+    return this.bossActive;
+  }
+
+  /** O chefão chegou na arena: o caminho para (e nenhum trecho novo é gerado). */
+  startBoss(): void {
+    this.bossActive = true;
+  }
+
+  /** Chefão derrotado: o caminho volta a andar. */
+  endBoss(): void {
+    this.bossActive = false;
   }
 
   update(deltaMs: number): void {

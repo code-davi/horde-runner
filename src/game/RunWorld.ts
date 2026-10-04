@@ -3,6 +3,7 @@ import { PROJECTILE_POOL_SIZE } from '../core/balance';
 import { createRng } from '../core/rng';
 import { Projectile } from './entities/Projectile';
 import { Squad } from './entities/Squad';
+import { BossEncounter, type BossEvents } from './systems/BossEncounter';
 import { ChunkSpawner } from './systems/ChunkSpawner';
 import { CollisionSystem, type CollisionEvents } from './systems/Collisions';
 import { DragInput } from './systems/DragInput';
@@ -12,7 +13,7 @@ import { ObjectPool } from './systems/ObjectPool';
 import { PathCollisionSystem, type PathEvents } from './systems/PathCollisions';
 
 /** Tudo que acontece no mundo e que a cena precisa saber. */
-export type RunEvents = CollisionEvents & PathEvents;
+export type RunEvents = CollisionEvents & PathEvents & BossEvents;
 
 /** Monta e atualiza, na ordem certa, todos os sistemas de uma partida. */
 export class RunWorld {
@@ -23,6 +24,7 @@ export class RunWorld {
   private readonly enemies: EnemySystem;
   private readonly collisions: CollisionSystem;
   private readonly path: PathCollisionSystem;
+  private readonly boss: BossEncounter;
 
   constructor(scene: Phaser.Scene, seed: number, events: RunEvents) {
     this.squad = new Squad(scene);
@@ -45,6 +47,7 @@ export class RunWorld {
       events,
     });
     this.path = new PathCollisionSystem({ projectiles, spawner: this.spawner, squad, events });
+    this.boss = new BossEncounter(scene, { spawner: this.spawner, projectiles, squad, events });
   }
 
   get scrollSpeed(): number {
@@ -58,5 +61,6 @@ export class RunWorld {
     this.enemies.update(this.spawner.scrollSpeed);
     this.collisions.update();
     this.path.update();
+    this.boss.update(deltaMs);
   }
 }

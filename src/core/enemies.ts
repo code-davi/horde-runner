@@ -1,4 +1,4 @@
-import { BOSS, ENEMIES } from './balance';
+import { BOSS, ENEMIES, ENEMY_BASE_WALK_SPEED } from './balance';
 
 /** Definição de um tipo de monstro (uma linha em `ENEMIES`, ADR 0017). */
 export interface EnemyDef {
@@ -27,4 +27,9 @@ export function bossHp(bossNumber: number): number {
 /** Pontos por derrotar o chefão número `bossNumber`. */
 export function bossPoints(bossNumber: number): number {
   return BOSS.pointsPerBoss * bossNumber;
+}
+
+/** Velocidade própria do chefão, em px/s (com o caminho parado, é só ela que conta). */
+export function bossWalkSpeed(): number {
+  return ENEMY_BASE_WALK_SPEED * BOSS.speed;
 }

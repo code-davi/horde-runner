@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { EnemyKind } from '../../core/enemies';
 import type { Gate } from '../../core/gates';
 import {
+  addBossKill,
   addDistance,
   addKill,
   initialScore,
@@ -35,6 +36,8 @@ export class RunScene extends Phaser.Scene {
       onSquadHit: (heroesLost) => this.changeTroop((troop) => takeHit(troop, heroesLost)),
       onGateCrossed: (gate) => this.onGateCrossed(gate),
       onWeaponUpgrade: () => this.changeTroop(upgradeWeapon),
+      onBossDefeated: (bossNumber) => this.onBossDefeated(bossNumber),
+      onBossReachedSquad: () => this.finish(totalScore(this.score)),
     });
     installPauseOnBlur(this);
     markScene('Run');
@@ -49,6 +52,10 @@ export class RunScene extends Phaser.Scene {
 
   private onEnemyKilled(kind: EnemyKind): void {
     this.score = addKill(this.score, kind);
+  }
+
+  private onBossDefeated(bossNumber: number): void {
+    this.score = addBossKill(this.score, bossNumber);
   }
 
   private onGateCrossed(gate: Gate): void {
