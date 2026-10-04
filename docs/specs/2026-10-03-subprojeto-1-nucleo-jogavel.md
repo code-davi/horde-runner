@@ -1,6 +1,6 @@
 # Spec — Subprojeto 1: Núcleo jogável
 
-> **Status:** rascunho (aguardando revisão) · **Data:** 2026-10-03
+> **Status:** aprovado · **Data:** 2026-10-03
 > **Visão:** `docs/visao/GDD.md` · **Decisões:** `docs/decisoes/`
 
 ## 1. Objetivo
@@ -36,8 +36,8 @@ Todos os números abaixo são **valores iniciais** e vivem em `src/core/balance.
 ### 4.2 Arma
 | Nível | Nome | Dano base | Tiros/s por unidade |
 |---|---|---|---|
-| 1 | Estilingue | 1 | 2 |
-| 2 | Arco | 1,5 | 2,5 |
+| 1 | Estilingue | 1 | 1 |
+| 2 | Arco | 1,5 | 2 |
 | 3 | Besta | 2,25 | 3 |
 | 4 | Cajado | 3,4 | 3 |
 | 5 | Canhão | 5 | 3 |
