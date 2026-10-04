@@ -19,7 +19,8 @@
 - `count` de heróis é inteiro ≥ 0; divisões arredondam para baixo.
 - Cada doc em `docs/aprendendo/NN-titulo.md` tem exatamente estas seções: **O que é**, **Por que existe**, **Analogia com o mundo web**, **Onde está no código** (caminhos de arquivo), **Mexa e veja** (1–3 experimentos concretos). Português claro, sem jargão não explicado.
 - Commits pequenos, mensagem no formato `tipo(escopo): descrição` (feat, test, docs, chore, fix).
-- Comandos de verificação: `npm test` (Vitest), `npm run typecheck`, `npm run lint`, `npm run test:e2e` (Playwright).
+- Comandos de verificação: `npm test` (Vitest), `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm run test:e2e` (Playwright). `npm run check` roda os quatro primeiros e deve passar antes de cada commit.
+- **Todo código segue `docs/specs/2026-10-03-padroes-de-codigo.md`** (limites verificados por ESLint desde o Task 1) e as regras de tipagem e reaproveitamento do ADR 0017. Quando um arquivo deste plano chegar perto dos limites, divida-o por responsabilidade em vez de pedir exceção.
 
 ## Review Focus
 
@@ -34,22 +35,22 @@
 ### Task 1: Scaffolding do projeto, CI e ADR do Phaser 4
 
 **Files:**
-- Create: `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.js`, `.gitignore`, `.gitattributes`, `index.html`, `src/main.ts`, `src/game/scenes/BootScene.ts`, `tests/core/sanity.test.ts`, `.github/workflows/ci.yml`, `docs/decisoes/0016-phaser-4.md`, `README.md`
+- Create: `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `.gitignore`, `.gitattributes`, `index.html`, `src/main.ts`, `src/game/scenes/BootScene.ts`, `tests/core/sanity.test.ts`, `.github/workflows/ci.yml`, `docs/decisoes/0016-phaser-4.md`, `README.md`
 
 **Interfaces:**
-- Produces: scripts npm `dev` (`vite --host`), `build`, `preview`, `test` (`vitest run`), `test:watch`, `typecheck` (`tsc --noEmit`), `lint` (`eslint .`), `test:e2e` (`playwright test`). `src/main.ts` cria `new Phaser.Game(config)` com config exportada como `gameConfig` de `src/game/config.ts`.
+- Produces: scripts npm `dev` (`vite --host`), `build`, `preview`, `test` (`vitest run`), `test:watch`, `typecheck` (`tsc --noEmit`), `lint` (`eslint .`), `format` (`prettier --write .`), `format:check` (`prettier --check .`), `check` (`npm run lint && npm run format:check && npm run typecheck && npm test`), `test:e2e` (`playwright test`). `src/main.ts` cria `new Phaser.Game(config)` com config exportada como `gameConfig` de `src/game/config.ts`.
 
-- [ ] **Step 1:** `npm init -y`; instalar `phaser@^4.2.1` e dev deps `vite vitest typescript @playwright/test eslint typescript-eslint @eslint/js`. Se `typescript-eslint` recusar a versão mais recente do TypeScript por peer dependency, fixe o TypeScript na maior versão que ele suporta e registre isso no README.
+- [ ] **Step 1:** `npm init -y`; instalar `phaser@^4.2.1` e dev deps `vite vitest typescript @playwright/test eslint typescript-eslint @eslint/js @eslint-community/eslint-plugin-eslint-comments prettier eslint-config-prettier`. Se `typescript-eslint` recusar a versão mais recente do TypeScript por peer dependency, fixe o TypeScript na maior versão que ele suporta e registre isso no README.
 - [ ] **Step 2:** `tsconfig.json` com `strict: true`, `noUncheckedIndexedAccess: true`, `module/moduleResolution: "bundler"`, `target: "ES2022"`, `include: ["src", "tests"]`.
-- [ ] **Step 3:** `eslint.config.js` com `@eslint/js` recommended + `typescript-eslint` recommended, e um bloco para `src/core/**` com `no-restricted-imports: ["error", { paths: ["phaser"] }]` e `no-restricted-globals: ["error", "window", "document", "localStorage"]`.
+- [ ] **Step 3:** `eslint.config.js` com `@eslint/js` recommended + `typescript-eslint` recommended + `eslint-config-prettier`, aplicando **todas as regras da tabela §2 do spec de padrões de código** com os limites exatos de lá (`max-lines` 200 em `src/**` e 300 em `tests/**` com `skipBlankLines`/`skipComments`; `max-lines-per-function` 40 só em `src/**`; `complexity` 10; `max-depth` 3; `max-params` 3; `no-explicit-any`; `explicit-module-boundary-types`; `consistent-type-imports`; `no-unused-vars`; `no-console` em `src/**`; `eslint-comments/require-description`). Bloco para `src/core/**`: `no-restricted-imports` bloqueando `phaser` e os padrões `**/game/**` e `**/platform/**`, e `no-restricted-globals` para `window`, `document` e `localStorage`. Bloco para `src/platform/**`: `no-restricted-imports` bloqueando `**/game/**`. `.prettierrc.json`: `{ "singleQuote": true, "printWidth": 100 }`; `.prettierignore` com `dist`, `test-results`, `playwright-report`.
 - [ ] **Step 4:** `src/game/config.ts` exporta `gameConfig: Phaser.Types.Core.GameConfig` (720×1280, `Scale.FIT`, `CENTER_BOTH`, `backgroundColor: '#2b2d42'`, Arcade Physics sem gravidade, cenas `[BootScene]`). `BootScene` (key `'Boot'`) escreve "Horde Runner" no centro. Verifique a forma de import correta do Phaser 4 com Vite (ver template oficial `@phaserjs/template-vite-ts`).
 - [ ] **Step 5:** `tests/core/sanity.test.ts` com `expect(1 + 1).toBe(2)`; `vitest.config.ts` com `include: ['tests/core/**/*.test.ts']`.
 - [ ] **Step 6:** `playwright.config.ts`: `testDir: 'tests/e2e'`, `webServer: { command: 'npm run dev -- --port 5173 --strictPort', url: 'http://localhost:5173' }`, projeto único Chromium com viewport 390×844.
 - [ ] **Step 7:** `.gitattributes` com `* text=auto eol=lf`; `.gitignore` com `node_modules`, `dist`, `test-results`, `playwright-report`.
-- [ ] **Step 8:** `.github/workflows/ci.yml`: em push/PR, Node 24, `npm ci`, `lint`, `typecheck`, `test`, `npx playwright install --with-deps chromium`, `test:e2e`.
+- [ ] **Step 8:** `.github/workflows/ci.yml`: em push/PR, Node 24, `npm ci`, `lint`, `format:check`, `typecheck`, `test`, `npx playwright install --with-deps chromium`, `test:e2e`.
 - [ ] **Step 9:** `docs/decisoes/0016-phaser-4.md` (formato dos ADRs existentes): Phaser 4.2.1 é a versão `latest` no npm em 2026-10-03; escolhida por ser a estável atual; consequência: exemplos antigos da internet podem ser de Phaser 3 — conferir a documentação do 4.
 - [ ] **Step 10:** `README.md` curto: o que é, `npm install`, `npm run dev` (abrir no celular pelo IP mostrado), scripts, link para `docs/`.
-- [ ] **Step 11: Verificar.** `npm test` → 1 passed; `npm run typecheck` e `npm run lint` → sem erros; `npm run dev` abre e mostra "Horde Runner".
+- [ ] **Step 11: Verificar.** `npm run check` → sem erros e 1 teste passando; criar temporariamente em `src/core/` um arquivo com `import Phaser from 'phaser'` e uma função de 41 linhas → `npm run lint` deve acusar os dois erros; apagar o arquivo. `npm run dev` abre e mostra "Horde Runner".
 - [ ] **Step 12: Commit** — `chore: scaffolding Vite + Phaser 4 + Vitest + Playwright + CI`
 
 ---
@@ -176,15 +177,28 @@
 
 ---
 
-### Task 5: Inimigos, chefão e pontuação
+### Task 5: Inimigos, chefão, pontuação, vida e geometria
 
 **Files:**
-- Create: `src/core/enemies.ts`, `src/core/scoring.ts`, `tests/core/enemies.test.ts`, `tests/core/scoring.test.ts`
+- Create: `src/core/enemies.ts`, `src/core/scoring.ts`, `src/core/health.ts`, `src/core/geometry.ts`, `tests/core/enemies.test.ts`, `tests/core/scoring.test.ts`, `tests/core/health.test.ts`, `tests/core/geometry.test.ts`
 - Modify: `src/core/balance.ts` (adicionar `ENEMIES`, `BOSS`, `ENEMY_BASE_WALK_SPEED = 80` (px/s), `PX_PER_METER = 100`)
 
 **Interfaces:**
-- Produces (`balance.ts`): `ENEMIES = { common: { hp: 3, speed: 1.0, heroesLost: 1, points: 10, cost: 1 }, strong: { hp: 40, speed: 0.6, heroesLost: 5, points: 50, cost: 8 } }`; `BOSS = { baseHp: 400, hpGrowth: 1.6, speed: 0.35, pointsPerBoss: 500 }`.
-- Produces (`enemies.ts`): `export type EnemyKind = 'common' | 'strong'`; `export function enemyDef(kind: EnemyKind): typeof ENEMIES[EnemyKind]`; `export function bossHp(bossNumber: number): number` (`400 × 1,6^bossNumber`); `export function bossPoints(bossNumber: number): number` (`500 × bossNumber`).
+- Produces (`enemies.ts`): `export interface EnemyDef { hp: number; speed: number; heroesLost: number; points: number; cost: number; radius: number }`; `export type EnemyKind = keyof typeof ENEMIES` (derivado da tabela, ADR 0017); `export function enemyDef(kind: EnemyKind): EnemyDef`; `export function bossHp(bossNumber: number): number` (`400 × 1,6^bossNumber`); `export function bossPoints(bossNumber: number): number` (`500 × bossNumber`).
+- Produces (`balance.ts`): `ENEMIES = { common: { hp: 3, speed: 1.0, heroesLost: 1, points: 10, cost: 1, radius: 18 }, strong: { hp: 40, speed: 0.6, heroesLost: 5, points: 50, cost: 8, radius: 32 } } as const satisfies Record<string, EnemyDef>` (`import type { EnemyDef }` de `enemies.ts`); `BOSS = { baseHp: 400, hpGrowth: 1.6, speed: 0.35, pointsPerBoss: 500, radius: 70 }`.
+- Produces (`health.ts`) — usado por inimigo, chefão e caixa de arma:
+  ```ts
+  export interface Health { readonly hp: number; readonly maxHp: number }
+  export function createHealth(maxHp: number): Health;
+  export function applyDamage(h: Health, amount: number): Health; // hp nunca abaixo de 0
+  export function isDepleted(h: Health): boolean;
+  export function healthRatio(h: Health): number;                  // hp / maxHp, em [0, 1]
+  ```
+- Produces (`geometry.ts`) — usado por toda colisão por distância:
+  ```ts
+  export interface Circle { readonly x: number; readonly y: number; readonly radius: number }
+  export function circlesOverlap(a: Circle, b: Circle): boolean; // distância entre centros < soma dos raios
+  ```
 - Produces (`scoring.ts`):
   ```ts
   export interface ScoreState { pixelsTravelled: number; monsterPoints: number; bossBonus: number }
@@ -195,9 +209,9 @@
   export function totalScore(s: ScoreState): number; // floor(px / PX_PER_METER) + monsterPoints + bossBonus
   ```
 
-- [ ] **Step 1: Testes que falham:** `bossHp(1)` = 640; `bossHp(2)` = 1024; `bossPoints(3)` = 1500; score: 250 px + 1 comum + 1 forte + chefão 1 → `2 + 10 + 50 + 500 = 562`; `addDistance` acumula frações (`0,5 px × 300` → 150 px → 1 metro).
+- [ ] **Step 1: Testes que falham:** `bossHp(1)` = 640; `bossHp(2)` = 1024; `bossPoints(3)` = 1500; score: 250 px + 1 comum + 1 forte + chefão 1 → `2 + 10 + 50 + 500 = 562`; `addDistance` acumula frações (`0,5 px × 300` → 150 px → 1 metro); `enemyDef('strong').heroesLost === 5`. Health: `applyDamage(createHealth(3), 5)` → `hp 0` e `isDepleted`; `healthRatio` de 10/40 = 0,25; `applyDamage` não altera o objeto original. Geometry: círculos de raio 10 com centros a 19 → `true`; a 20 → `false` (encostar exatamente não conta); mesmo centro → `true`.
 - [ ] **Step 2:** Rodar → FAIL. **Step 3:** Implementar. **Step 4:** Rodar → PASS.
-- [ ] **Step 5: Commit** — `feat(core): inimigos, chefão e pontuação`
+- [ ] **Step 5: Commit** — `feat(core): inimigos, chefão, pontuação, vida e geometria`
 
 ---
 
@@ -336,45 +350,52 @@
 
 ---
 
-### Task 10: Disparo e pool de projéteis
+### Task 10: Pool genérico, projéteis e disparo
 
 **Files:**
-- Create: `src/game/entities/Projectile.ts`, `src/game/systems/ProjectilePool.ts`, `src/game/systems/FiringSystem.ts`, `docs/aprendendo/06-object-pooling.md`
-- Modify: `src/game/scenes/RunScene.ts`, `src/core/balance.ts` (adicionar `PROJECTILE_SPEED = 900` (px/s), `PROJECTILE_POOL_SIZE = 400`)
+- Create: `src/game/systems/ObjectPool.ts`, `src/game/entities/Projectile.ts`, `src/game/systems/FiringSystem.ts`, `docs/aprendendo/06-object-pooling.md`, `docs/aprendendo/11-reaproveitamento-em-jogos.md`
+- Modify: `src/game/scenes/RunScene.ts`, `src/core/balance.ts` (adicionar `PROJECTILE_SPEED = 900` (px/s), `PROJECTILE_POOL_SIZE = 400`, `OFFSCREEN_MARGIN_PX = 120`)
 
 **Interfaces:**
 - Consumes: `Squad` (Task 9), `weaponStats`, `unitShotDamage`, `formationOffsets`.
-- Produces:
+- Produces (pool **único e genérico**, reutilizado por projéteis e inimigos — ADR 0017):
   ```ts
-  export class Projectile extends Phaser.GameObjects.Arc { damage: number; fire(x: number, y: number, damage: number): void; kill(): void } // corpo Arcade, velocidade -PROJECTILE_SPEED em y; kill() desativa e devolve ao pool
-  export class ProjectilePool { constructor(scene: Phaser.Scene); readonly group: Phaser.Physics.Arcade.Group; spawn(x: number, y: number, damage: number): Projectile | null; update(): void } // update mata os que saem do topo (y < -20)
-  export class FiringSystem { constructor(pool: ProjectilePool); update(deltaMs: number, squad: Squad): void }
+  export interface Poolable { kill(): void } // desativa, esconde e desliga o corpo físico
+  export class ObjectPool<T extends Phaser.GameObjects.GameObject & Poolable> {
+    constructor(scene: Phaser.Scene, options: { classType: new (scene: Phaser.Scene) => T; maxSize: number });
+    readonly group: Phaser.Physics.Arcade.Group;
+    acquire(): T | null;                        // null quando cheio — quem chama ignora em silêncio
+    forEachActive(fn: (item: T) => void): void;
+  }
+  export class Projectile extends Phaser.GameObjects.Arc implements Poolable { damage: number; fire(x: number, y: number, damage: number): void; kill(): void } // velocidade -PROJECTILE_SPEED em y
+  export class FiringSystem { constructor(pool: ObjectPool<Projectile>); update(deltaMs: number, squad: Squad): void } // também mata projéteis com y < -OFFSCREEN_MARGIN_PX
   ```
-- [ ] **Step 1:** Implementar `Projectile` e `ProjectilePool` (`group` com `classType: Projectile`, `maxSize: PROJECTILE_POOL_SIZE`, `runChildUpdate: false`). **`spawn` retorna `null` quando o pool está cheio — quem chama ignora em silêncio.**
-- [ ] **Step 2:** Implementar `FiringSystem`: um acumulador de tempo por índice de unidade; cada unidade dispara a cada `1000 / shotsPerSecond` ms, a partir de `squad.x + offset.x`, `squad.y + offset.y`, com `unitShotDamage(level, unit)`. Ao mudar `units`, reiniciar os acumuladores com fase aleatória (para os tiros não saírem todos juntos).
+- [ ] **Step 1:** Implementar `ObjectPool<T>` (`group` com `classType`, `maxSize`, `runChildUpdate: false`; `acquire` usa `group.get()` e devolve `null` quando cheio) e `Projectile`.
+- [ ] **Step 2:** Implementar `FiringSystem` (`pool.acquire()?.fire(...)`): um acumulador de tempo por índice de unidade; cada unidade dispara a cada `1000 / shotsPerSecond` ms, a partir de `squad.x + offset.x`, `squad.y + offset.y`, com `unitShotDamage(level, unit)`. Ao mudar `units`, reiniciar os acumuladores com fase aleatória (para os tiros não saírem todos juntos).
 - [ ] **Step 3: Verificar:** com `?debug` desligado, a tropa de 1 herói dispara 1 tiro/s; trocando localmente `initialTroop` para `count: 300` (sem commitar) aparecem 6 Cavaleiros atirando sem queda visível de FPS. `npm run test:e2e` → PASS.
-- [ ] **Step 4:** Escrever `06-object-pooling.md` (analogia: pool de conexões do banco; o que acontece com o garbage collector sem pool).
-- [ ] **Step 5: Commit** — `feat(game): disparo automático com pool de projéteis`
+- [ ] **Step 4:** Escrever `06-object-pooling.md` (analogia: pool de conexões do banco; o que acontece com o garbage collector sem pool) e `11-reaproveitamento-em-jogos.md` (tabela React ↔ game dev do ADR 0017: entidade guiada por dados × componente com props, módulo puro de comportamento × hook, view reutilizável × biblioteca de UI, composição × herança, regra de três; exemplos reais do código: `ObjectPool<T>`, `health.ts`, `geometry.ts`, `ProgressBar`; prévia dos padrões de assets: atlas, tint, 9-slice, animação esquelética).
+- [ ] **Step 5: Commit** — `feat(game): pool genérico e disparo automático`
 
 ---
 
 ### Task 11: Inimigos, rolagem do mundo e colisões básicas
 
 **Files:**
-- Create: `src/game/entities/Enemy.ts`, `src/game/views/EnemyView.ts`, `src/game/systems/EnemyPool.ts`, `src/game/systems/Collisions.ts`, `docs/aprendendo/05-fisica-arcade-e-colisoes.md`
-- Modify: `src/game/scenes/RunScene.ts`, `src/core/balance.ts` (adicionar `ENEMY_POOL_SIZE = 300`, `ENEMY_RADIUS = { common: 18, strong: 32 }`)
+- Create: `src/game/entities/Enemy.ts`, `src/game/views/EnemyView.ts`, `src/game/systems/EnemySystem.ts`, `src/game/systems/Collisions.ts`, `docs/aprendendo/05-fisica-arcade-e-colisoes.md`
+- Modify: `src/game/scenes/RunScene.ts`, `src/game/entities/Squad.ts` (adicionar `get circle(): Circle`), `src/core/balance.ts` (adicionar `ENEMY_POOL_SIZE = 300`)
 
 **Interfaces:**
-- Consumes: `enemyDef`, `EnemyKind`, `takeHit`, `addKill`, `ProjectilePool`, `Squad`.
+- Consumes: `ObjectPool<T>`, `Projectile` (Task 10), `enemyDef`, `EnemyKind`, `Health`/`createHealth`/`applyDamage`/`isDepleted`, `Circle`/`circlesOverlap` (Task 5), `takeHit`, `addKill`, `Squad`.
 - Produces:
   ```ts
-  export class Enemy extends Phaser.GameObjects.Container { kind: EnemyKind; hp: number; spawn(kind: EnemyKind, x: number, y: number): void; damage(amount: number): boolean /* true se morreu */; kill(): void }
-  export class EnemyPool { constructor(scene: Phaser.Scene); readonly group: Phaser.Physics.Arcade.Group; spawn(kind: EnemyKind, x: number, y: number): Enemy | null; update(deltaMs: number, scrollSpeed: number): void } // move para baixo a scrollSpeed + ENEMY_BASE_WALK_SPEED × def.speed; mata abaixo de y > 1400
+  // Uma classe para todos os monstros; o que muda vem de enemyDef(kind) (entidade guiada por dados)
+  export class Enemy extends Phaser.GameObjects.Container implements Poolable { kind: EnemyKind; health: Health; spawn(kind: EnemyKind, x: number, y: number): void; damage(amount: number): boolean /* true se morreu */; get circle(): Circle; kill(): void }
+  export class EnemySystem { constructor(scene: Phaser.Scene); readonly pool: ObjectPool<Enemy>; spawn(kind: EnemyKind, x: number, y: number): Enemy | null; update(deltaMs: number, scrollSpeed: number): void } // move para baixo a scrollSpeed + ENEMY_BASE_WALK_SPEED × def.speed; mata com y > 1280 + OFFSCREEN_MARGIN_PX
   export interface CollisionEvents { onEnemyKilled(kind: EnemyKind): void; onSquadHit(heroesLost: number): void }
-  export function registerCollisions(scene: Phaser.Scene, deps: { projectiles: ProjectilePool; enemies: EnemyPool; squad: Squad; events: CollisionEvents }): void;
+  export function registerCollisions(scene: Phaser.Scene, deps: { projectiles: ObjectPool<Projectile>; enemies: EnemySystem; squad: Squad; events: CollisionEvents }): void;
   ```
-- [ ] **Step 1:** Implementar `EnemyView` (círculo com olhinhos simples e contorno grosso, cor por tipo) e `Enemy`/`EnemyPool`; `spawn` retorna `null` quando o pool está cheio.
-- [ ] **Step 2:** Implementar `registerCollisions`: overlap projétil×inimigo → `damage`, mata o projétil; se morreu → `onEnemyKilled`. Tropa×inimigo: a cada frame, inimigo ativo cujo centro está a menos de `squad.radius + raio do inimigo` do centro da tropa → `onSquadHit(def.heroesLost)` e o inimigo some.
+- [ ] **Step 1:** Implementar `EnemyView` (círculo com olhinhos simples e contorno grosso, cor por tipo, raio `def.radius`), `Enemy` (vida via `health.ts`) e `EnemySystem` usando `ObjectPool<Enemy>`; `spawn` retorna `null` quando o pool está cheio.
+- [ ] **Step 2:** Implementar `registerCollisions`: overlap projétil×inimigo → `damage`, mata o projétil; se morreu → `onEnemyKilled`. Tropa×inimigo: a cada frame, inimigo ativo com `circlesOverlap(squad.circle, enemy.circle)` → `onSquadHit(def.heroesLost)` e o inimigo some.
 - [ ] **Step 3:** Em `RunScene`, manter `troop`/`score` como estado do core: `onEnemyKilled` → `score = addKill(...)`; `onSquadHit` → `squad.setState(takeHit(...))`; se `isDefeated` → vai para `GameOver` (fluxo final no Task 14). Spawn temporário de teste: uma fileira de 5 comuns a cada 2 s (removido no Task 12). `score = addDistance(score, scrollSpeed × dt / 1000)`.
 - [ ] **Step 4: Verificar:** monstros descem, morrem com tiros e removem heróis ao encostar; tropa zerada leva ao fim de jogo. `npm run test:e2e` → PASS.
 - [ ] **Step 5:** Escrever `05-fisica-arcade-e-colisoes.md` (corpos, overlap × collide, colisão por distância entre círculos; analogia: `IntersectionObserver`).
@@ -385,23 +406,25 @@
 ### Task 12: Trechos no mundo: portões, caixas de arma e hordas geradas
 
 **Files:**
-- Create: `src/game/entities/GateRow.ts`, `src/game/views/GateView.ts`, `src/game/entities/WeaponCrate.ts`, `src/game/views/CrateView.ts`, `src/game/systems/ChunkSpawner.ts`, `src/core/crossing.ts`, `tests/core/crossing.test.ts`
+- Create: `src/game/entities/GateRow.ts`, `src/game/views/GateView.ts`, `src/game/entities/WeaponCrate.ts`, `src/game/views/CrateView.ts`, `src/game/views/ProgressBar.ts`, `src/game/systems/ChunkSpawner.ts`, `src/core/crossing.ts`, `tests/core/crossing.test.ts`
 - Modify: `src/game/scenes/RunScene.ts`, `src/game/systems/Collisions.ts`, `src/core/balance.ts` (adicionar `CHUNK_LENGTH_PX = 1200`, `GATE_WIDTH = 330`, `GATE_HEIGHT = 70`, `CRATE_SIZE = 70`, `LANE_CENTER_X = { left: 180, right: 540 }`)
 
 **Interfaces:**
-- Consumes: `ChunkGenerator`, `Chunk`, `GatePlacement`, `Gate`, `hitGate`, `isShootable`, `gateLabel`, `applyGate`, `upgradeWeapon`, `laneAt`, `createRng`, `scrollSpeed`, `EnemyPool`.
+- Consumes: `ChunkGenerator`, `Chunk`, `GatePlacement`, `Gate`, `hitGate`, `isShootable`, `gateLabel`, `applyGate`, `upgradeWeapon`, `laneAt`, `createRng`, `scrollSpeed`, `EnemySystem`, `Health`/`createHealth`/`applyDamage`/`healthRatio`, `circlesOverlap`.
 - Produces (`crossing.ts`, puro e testado): `export function resolveRowCrossing(row: readonly GatePlacement[], squadX: number): GatePlacement | null` — devolve o portão da faixa `laneAt(squadX)`, ou `null` se essa faixa estiver vazia.
 - Produces (game):
   ```ts
   export class GateRow { constructor(scene: Phaser.Scene, placements: GatePlacement[], y: number); y: number; consumed: boolean; gateAtLane(lane: Lane): { placement: GatePlacement; bounds: Phaser.Geom.Rectangle } | null; hit(lane: Lane): void /* aplica hitGate e redesenha o rótulo */; destroy(): void }
-  export class WeaponCrate { constructor(scene: Phaser.Scene, x: number, y: number); hitsLeft: number; consumed: boolean; hit(): boolean /* true ao chegar a 0 */; destroy(): void }
-  export class ChunkSpawner { constructor(scene: Phaser.Scene, rng: Rng, enemies: EnemyPool); update(deltaMs: number): void; get currentChunk(): Chunk; get scrollSpeed(): number; get isBossActive(): boolean; readonly gateRows: GateRow[]; readonly crates: WeaponCrate[]; onBossChunk?: (bossNumber: number, y: number) => void }
+  // View reutilizável: barra da caixa de arma (aqui) e vida do chefão (Task 13)
+  export class ProgressBar { constructor(scene: Phaser.Scene, options: { width: number; height: number; color: number }); setRatio(ratio: number): void; setPosition(x: number, y: number): void; destroy(): void }
+  export class WeaponCrate { constructor(scene: Phaser.Scene, x: number, y: number); health: Health /* createHealth(WEAPON_CRATE_HP); cada acerto = applyDamage(1) */; consumed: boolean; hit(): boolean /* true ao esvaziar */; get circle(): Circle; destroy(): void }
+  export class ChunkSpawner { constructor(scene: Phaser.Scene, rng: Rng, enemies: EnemySystem); update(deltaMs: number): void; get currentChunk(): Chunk; get scrollSpeed(): number; get isBossActive(): boolean; readonly gateRows: GateRow[]; readonly crates: WeaponCrate[]; onBossChunk?: (bossNumber: number, y: number) => void }
   ```
 - [ ] **Step 1: Teste que falha** (`crossing.test.ts`): fileira com portão só na esquerda → `squadX = 100` devolve o da esquerda; `squadX = 360` devolve `null`; fileira com os dois → `squadX = 359` esquerda, `360` direita; fileira vazia → `null`.
 - [ ] **Step 2:** Rodar → FAIL. **Step 3:** Implementar `resolveRowCrossing`. **Step 4:** Rodar → PASS.
-- [ ] **Step 5:** Implementar `GateView` (retângulo verde se `isGoodGate`, vermelho se não, rótulo `gateLabel` grande e legível; troca de cor quando um `-N` vira positivo) e `CrateView` (quadrado com "ARMA" e barra de acertos).
-- [ ] **Step 6:** Implementar `ChunkSpawner`: gera o próximo trecho quando o topo do trecho atual entra na tela; mapeia `offset` → y dentro de `CHUNK_LENGTH_PX` e fileira `row` → `y = topoDoTrecho + (row + 1) × CHUNK_LENGTH_PX / (GATE_ROWS + 1)`; inimigos em `x × 720`; tudo rola para baixo a `scrollSpeed(índice)`; destrói o que passa de y 1400. Remover o spawn temporário do Task 11.
-- [ ] **Step 7:** Colisões novas em `Collisions.ts`: projétil × portão `isShootable` (dentro de `bounds`) → `GateRow.hit(lane)`, mata o projétil; projéteis atravessam os demais portões. Projétil × caixa → `hit()`, mata o projétil; ao chegar a 0 → `upgradeWeapon`. Quando `GateRow.y` cruza `SQUAD_Y` e `!consumed` → `resolveRowCrossing` → `applyGate` (se houver) e `consumed = true`. Tropa × caixa (distância) → `upgradeWeapon`, `consumed = true`.
+- [ ] **Step 5:** Implementar `GateView` (retângulo verde se `isGoodGate`, vermelho se não, rótulo `gateLabel` grande e legível; troca de cor quando um `-N` vira positivo) , `ProgressBar` e `CrateView` (quadrado com "ARMA" e um `ProgressBar` com `healthRatio`).
+- [ ] **Step 6:** Implementar `ChunkSpawner`: gera o próximo trecho quando o topo do trecho atual entra na tela; mapeia `offset` → y dentro de `CHUNK_LENGTH_PX` e fileira `row` → `y = topoDoTrecho + (row + 1) × CHUNK_LENGTH_PX / (GATE_ROWS + 1)`; inimigos em `x × 720`; tudo rola para baixo a `scrollSpeed(índice)`; destrói o que passa de `y > 1280 + OFFSCREEN_MARGIN_PX`. Remover o spawn temporário do Task 11.
+- [ ] **Step 7:** Colisões novas em `Collisions.ts`: projétil × portão `isShootable` (dentro de `bounds`) → `GateRow.hit(lane)`, mata o projétil; projéteis atravessam os demais portões. Projétil × caixa → `hit()`, mata o projétil; ao chegar a 0 → `upgradeWeapon`. Quando `GateRow.y` cruza `SQUAD_Y` e `!consumed` → `resolveRowCrossing` → `applyGate` (se houver) e `consumed = true`. Tropa × caixa (`circlesOverlap(squad.circle, crate.circle)`) → `upgradeWeapon`, `consumed = true`.
 - [ ] **Step 8: Verificar** com `?seed=1`: os primeiros trechos só têm par clássico, solitário bom ou só horda; os portões mudam a contagem; atirar em `-N` aumenta o valor; a caixa sobe a arma. `npm test` e `npm run test:e2e` → PASS.
 - [ ] **Step 9: Commit** — `feat(game): trechos procedurais com portões e caixas no mundo`
 
@@ -411,14 +434,14 @@
 
 **Files:**
 - Create: `src/game/entities/Boss.ts`, `src/game/views/BossView.ts`
-- Modify: `src/game/systems/ChunkSpawner.ts`, `src/game/systems/Collisions.ts`, `src/game/scenes/RunScene.ts`, `src/core/balance.ts` (adicionar `BOSS_RADIUS = 70`)
+- Modify: `src/game/systems/ChunkSpawner.ts`, `src/game/systems/Collisions.ts`, `src/game/scenes/RunScene.ts`
 
 **Interfaces:**
-- Consumes: `bossHp`, `addBossKill`, `BOSS.speed`, `ENEMY_BASE_WALK_SPEED`, `ChunkSpawner.onBossChunk`.
-- Produces: `export class Boss extends Phaser.GameObjects.Container { constructor(scene: Phaser.Scene, bossNumber: number, x: number, y: number); readonly bossNumber: number; hp: number; readonly maxHp: number; damage(amount: number): boolean; update(deltaMs: number): void }` — desce a `ENEMY_BASE_WALK_SPEED × BOSS.speed`; a view mostra uma barra de vida acima dele.
-- [ ] **Step 1:** Implementar `BossView` e `Boss`.
+- Consumes: `bossHp`, `addBossKill`, `BOSS`, `ENEMY_BASE_WALK_SPEED`, `ChunkSpawner.onBossChunk`, `Health`/`createHealth`/`applyDamage`/`healthRatio`, `Circle`/`circlesOverlap`, `ProgressBar` (Task 12).
+- Produces: `export class Boss extends Phaser.GameObjects.Container { constructor(scene: Phaser.Scene, bossNumber: number, x: number, y: number); readonly bossNumber: number; health: Health; damage(amount: number): boolean; get circle(): Circle /* raio BOSS.radius */; update(deltaMs: number): void }` — desce a `ENEMY_BASE_WALK_SPEED × BOSS.speed`. `Boss` não herda de `Enemy`: compartilha `health.ts`, `geometry.ts` e `ProgressBar` por composição.
+- [ ] **Step 1:** Implementar `BossView` (círculo grande + `ProgressBar` acima, atualizada com `healthRatio`) e `Boss`.
 - [ ] **Step 2:** `ChunkSpawner`: quando o trecho do chefão chega à tela, chama `onBossChunk`, `isBossActive = true` e a rolagem vai a 0 (inimigos continuam caminhando); o próximo trecho só é gerado depois que o chefão morre.
-- [ ] **Step 3:** Colisões: projétil × chefão → `damage`; ao morrer → `score = addBossKill(score, n)`, `isBossActive = false`, a rolagem volta. Tropa × chefão (distância < `squad.radius + BOSS_RADIUS`) → fim de jogo imediato.
+- [ ] **Step 3:** Colisões: projétil × chefão → `damage`; ao morrer → `score = addBossKill(score, n)`, `isBossActive = false`, a rolagem volta. Tropa × chefão (`circlesOverlap(squad.circle, boss.circle)`) → fim de jogo imediato.
 - [ ] **Step 4: Verificar** com `?seed=1&debug`: no trecho 8 aparece o chefão 1 com 640 de vida, o caminho para e volta a andar após derrotá-lo; deixar o chefão encostar encerra a partida. `npm run test:e2e` → PASS.
 - [ ] **Step 5: Commit** — `feat(game): chefão a cada 8 trechos`
 
