@@ -77,7 +77,39 @@ Ver ADR 0017: tipo junto do dono, union discriminada por `kind` com `switch` exa
 - Estrutura Arrange / Act / Assert, um comportamento por teste.
 - Sem `if`/loops com asserções condicionais (testes de propriedade são a exceção, com o loop explícito).
 
-## 10. Checklist de revisão (o que a ferramenta não pega)
+## 10. Git e commits (ADR 0019)
+
+**Formato** ([Conventional Commits](https://www.conventionalcommits.org/)), validado pelo commitlint:
+
+```
+tipo(escopo opcional): descrição curta no imperativo, em português
+
+Corpo opcional explicando o porquê.
+```
+
+| Regra | Valor |
+|---|---|
+| Tipos permitidos | `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `style`, `build`, `ci`, `chore`, `revert` |
+| Escopos permitidos (opcionais) | `core`, `game`, `platform`, `e2e`, `deps`, `ci`, `spec`, `plano`, `adr`, `aprendendo`, `playtest` |
+| Cabeçalho | máximo 100 caracteres; descrição começa em minúscula e não termina com ponto |
+| Corpo | linha em branco após o cabeçalho; linhas de até 100 caracteres |
+
+Exemplos: `feat(core): aplica portões de multiplicação na tropa` · `test(core): cobre travas de justiça com 10 mil seeds` · `docs(adr): registra escolha do phaser 4`.
+
+**Hooks (lefthook, instalados automaticamente via `npm install`):**
+
+| Hook | O que roda |
+|---|---|
+| `commit-msg` | `commitlint --edit` |
+| `pre-commit` | ESLint e Prettier (check) só nos arquivos staged + `npm run typecheck` |
+| `pre-push` | `npm test` |
+
+**Regras:**
+- Nunca use `--no-verify`. Se um hook falhar, corrija a causa.
+- Faça commits pequenos e coesos: um commit = uma mudança que faz sentido sozinha.
+- O CI revalida as mensagens de todos os commits do PR.
+
+## 11. Checklist de revisão (o que a ferramenta não pega)
 
 - [ ] Cada arquivo novo tem uma responsabilidade descritível numa frase.
 - [ ] Os nomes dispensam comentário.

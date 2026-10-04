@@ -29,6 +29,12 @@ Siga `docs/specs/2026-10-03-padroes-de-codigo.md`. Resumo:
 - Entidades guiadas por dados; composição em vez de herança; lógica comum em módulos puros (`health.ts`, `geometry.ts`); `ObjectPool<T>` único; regra de três antes de generalizar.
 - Antes de cada commit: `npm run check`.
 
+## Commits (obrigatório)
+
+- Conventional Commits validados por commitlint, com hooks do lefthook (spec de padrões §10, ADR 0019).
+- Formato: `tipo(escopo): descrição em português, minúscula, sem ponto final` (≤ 100 caracteres). Tipos: feat, fix, refactor, perf, test, docs, style, build, ci, chore, revert. Escopos: core, game, platform, e2e, deps, ci, spec, plano, adr, aprendendo, playtest.
+- **Nunca use `--no-verify`.** Hook falhou → corrija a causa e crie um commit novo.
+
 ## Idioma
 
 Docs em português. Código (nomes, identificadores) em inglês.

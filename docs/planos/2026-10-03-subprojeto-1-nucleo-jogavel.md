@@ -18,7 +18,7 @@
 - Resolução lógica 720×1280, `Phaser.Scale.FIT`, `autoCenter: CENTER_BOTH`, retrato.
 - `count` de heróis é inteiro ≥ 0; divisões arredondam para baixo.
 - Cada doc em `docs/aprendendo/NN-titulo.md` tem exatamente estas seções: **O que é**, **Por que existe**, **Analogia com o mundo web**, **Onde está no código** (caminhos de arquivo), **Mexa e veja** (1–3 experimentos concretos). Português claro, sem jargão não explicado.
-- Commits pequenos, mensagem no formato `tipo(escopo): descrição` (feat, test, docs, chore, fix).
+- Commits pequenos, no formato do spec de padrões §10 (Conventional Commits; tipos e escopos permitidos lá), validados por commitlint via lefthook a partir do Task 1. Nunca usar `--no-verify`.
 - Comandos de verificação: `npm test` (Vitest), `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm run test:e2e` (Playwright). `npm run check` roda os quatro primeiros e deve passar antes de cada commit.
 - **Todo código segue `docs/specs/2026-10-03-padroes-de-codigo.md`** (limites verificados por ESLint desde o Task 1) e as regras de tipagem e reaproveitamento do ADR 0017. Quando um arquivo deste plano chegar perto dos limites, divida-o por responsabilidade em vez de pedir exceção.
 
@@ -35,23 +35,24 @@
 ### Task 1: Scaffolding do projeto, CI e ADR do Phaser 4
 
 **Files:**
-- Create: `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `.gitignore`, `.gitattributes`, `index.html`, `src/main.ts`, `src/game/scenes/BootScene.ts`, `tests/core/sanity.test.ts`, `.github/workflows/ci.yml`, `docs/decisoes/0016-phaser-4.md`, `README.md`
+- Create: `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `commitlint.config.js`, `lefthook.yml`, `.gitignore`, `.gitattributes`, `index.html`, `src/main.ts`, `src/game/scenes/BootScene.ts`, `tests/core/sanity.test.ts`, `.github/workflows/ci.yml`, `docs/decisoes/0016-phaser-4.md`, `README.md`
 
 **Interfaces:**
-- Produces: scripts npm `dev` (`vite --host`), `build`, `preview`, `test` (`vitest run`), `test:watch`, `typecheck` (`tsc --noEmit`), `lint` (`eslint .`), `format` (`prettier --write .`), `format:check` (`prettier --check .`), `check` (`npm run lint && npm run format:check && npm run typecheck && npm test`), `test:e2e` (`playwright test`). `src/main.ts` cria `new Phaser.Game(config)` com config exportada como `gameConfig` de `src/game/config.ts`.
+- Produces: scripts npm `dev` (`vite --host`), `build`, `preview`, `test` (`vitest run`), `test:watch`, `typecheck` (`tsc --noEmit`), `lint` (`eslint .`), `format` (`prettier --write .`), `format:check` (`prettier --check .`), `check` (`npm run lint && npm run format:check && npm run typecheck && npm test`), `test:e2e` (`playwright test`), `prepare` (`lefthook install`). `src/main.ts` cria `new Phaser.Game(config)` com config exportada como `gameConfig` de `src/game/config.ts`.
 
-- [ ] **Step 1:** `npm init -y`; instalar `phaser@^4.2.1` e dev deps `vite vitest typescript @playwright/test eslint typescript-eslint @eslint/js @eslint-community/eslint-plugin-eslint-comments prettier eslint-config-prettier`. Se `typescript-eslint` recusar a versão mais recente do TypeScript por peer dependency, fixe o TypeScript na maior versão que ele suporta e registre isso no README.
+- [ ] **Step 1:** `npm init -y`; instalar `phaser@^4.2.1` e dev deps `vite vitest typescript @playwright/test eslint typescript-eslint @eslint/js @eslint-community/eslint-plugin-eslint-comments prettier eslint-config-prettier @commitlint/cli @commitlint/config-conventional lefthook`. Se `typescript-eslint` recusar a versão mais recente do TypeScript por peer dependency, fixe o TypeScript na maior versão que ele suporta e registre isso no README.
 - [ ] **Step 2:** `tsconfig.json` com `strict: true`, `noUncheckedIndexedAccess: true`, `module/moduleResolution: "bundler"`, `target: "ES2022"`, `include: ["src", "tests"]`.
 - [ ] **Step 3:** `eslint.config.js` com `@eslint/js` recommended + `typescript-eslint` recommended + `eslint-config-prettier`, aplicando **todas as regras da tabela §2 do spec de padrões de código** com os limites exatos de lá (`max-lines` 200 em `src/**` e 300 em `tests/**` com `skipBlankLines`/`skipComments`; `max-lines-per-function` 40 só em `src/**`; `complexity` 10; `max-depth` 3; `max-params` 3; `no-explicit-any`; `explicit-module-boundary-types`; `consistent-type-imports`; `no-unused-vars`; `no-console` em `src/**`; `eslint-comments/require-description`). Bloco para `src/core/**`: `no-restricted-imports` bloqueando `phaser` e os padrões `**/game/**` e `**/platform/**`, e `no-restricted-globals` para `window`, `document` e `localStorage`. Bloco para `src/platform/**`: `no-restricted-imports` bloqueando `**/game/**`. `.prettierrc.json`: `{ "singleQuote": true, "printWidth": 100 }`; `.prettierignore` com `dist`, `test-results`, `playwright-report`.
+- [ ] **Step 3b:** `commitlint.config.js`: estende `@commitlint/config-conventional`; `type-enum` e `scope-enum` com as listas exatas do spec de padrões §10; `header-max-length: 100`; `body-max-line-length: 100`; manter o `subject-case` padrão do preset (recusa sentence/start/pascal/upper-case, permitindo siglas como "RNG" no meio). `lefthook.yml`: `commit-msg` → `npx commitlint --edit {1}`; `pre-commit` (paralelo) → `npx eslint {staged_files}` (glob `*.{ts,js}`), `npx prettier --check {staged_files}`, `npm run typecheck`; `pre-push` → `npm test`. Rodar `npm run prepare` para instalar os hooks.
 - [ ] **Step 4:** `src/game/config.ts` exporta `gameConfig: Phaser.Types.Core.GameConfig` (720×1280, `Scale.FIT`, `CENTER_BOTH`, `backgroundColor: '#2b2d42'`, Arcade Physics sem gravidade, cenas `[BootScene]`). `BootScene` (key `'Boot'`) escreve "Horde Runner" no centro. Verifique a forma de import correta do Phaser 4 com Vite (ver template oficial `@phaserjs/template-vite-ts`).
 - [ ] **Step 5:** `tests/core/sanity.test.ts` com `expect(1 + 1).toBe(2)`; `vitest.config.ts` com `include: ['tests/core/**/*.test.ts']`.
 - [ ] **Step 6:** `playwright.config.ts`: `testDir: 'tests/e2e'`, `webServer: { command: 'npm run dev -- --port 5173 --strictPort', url: 'http://localhost:5173' }`, projeto único Chromium com viewport 390×844.
 - [ ] **Step 7:** `.gitattributes` com `* text=auto eol=lf`; `.gitignore` com `node_modules`, `dist`, `test-results`, `playwright-report`.
-- [ ] **Step 8:** `.github/workflows/ci.yml`: em push/PR, Node 24, `npm ci`, `lint`, `format:check`, `typecheck`, `test`, `npx playwright install --with-deps chromium`, `test:e2e`.
+- [ ] **Step 8:** `.github/workflows/ci.yml`: em push/PR, Node 24, `npm ci` (checkout com `fetch-depth: 0`), em PRs `npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}`, `lint`, `format:check`, `typecheck`, `test`, `npx playwright install --with-deps chromium`, `test:e2e`.
 - [ ] **Step 9:** `docs/decisoes/0016-phaser-4.md` (formato dos ADRs existentes): Phaser 4.2.1 é a versão `latest` no npm em 2026-10-03; escolhida por ser a estável atual; consequência: exemplos antigos da internet podem ser de Phaser 3 — conferir a documentação do 4.
 - [ ] **Step 10:** `README.md` curto: o que é, `npm install`, `npm run dev` (abrir no celular pelo IP mostrado), scripts, link para `docs/`.
-- [ ] **Step 11: Verificar.** `npm run check` → sem erros e 1 teste passando; criar temporariamente em `src/core/` um arquivo com `import Phaser from 'phaser'` e uma função de 41 linhas → `npm run lint` deve acusar os dois erros; apagar o arquivo. `npm run dev` abre e mostra "Horde Runner".
-- [ ] **Step 12: Commit** — `chore: scaffolding Vite + Phaser 4 + Vitest + Playwright + CI`
+- [ ] **Step 11: Verificar.** `npm run check` → sem erros e 1 teste passando; criar temporariamente em `src/core/` um arquivo com `import Phaser from 'phaser'` e uma função de 41 linhas → `npm run lint` deve acusar os dois erros; apagar o arquivo. `npm run dev` abre e mostra "Horde Runner". Hooks: `git commit --allow-empty -m "Commit errado."` deve ser **recusado** pelo commitlint; `git commit --allow-empty -m "chore: valida hooks"` deve passar (depois desfazer com `git reset --soft HEAD~1`).
+- [ ] **Step 12: Commit** — `chore: configura vite, phaser 4, vitest, playwright, lint, hooks e ci`
 
 ---
 
@@ -84,7 +85,7 @@
 - [ ] **Step 3:** Implementar com o algoritmo mulberry32 (estado de 32 bits, `seed >>> 0`).
 - [ ] **Step 4:** Rodar os testes → PASS.
 - [ ] **Step 5:** Escrever `docs/aprendendo/07-rng-com-seed.md` (por que `Math.random()` não basta: reproduzir bugs e partidas com `?seed=`; analogia: snapshot de teste/fixture determinística).
-- [ ] **Step 6: Commit** — `feat(core): RNG com seed (mulberry32)`
+- [ ] **Step 6: Commit** — `feat(core): adiciona rng com seed (mulberry32)`
 
 ---
 
@@ -133,7 +134,7 @@
 - [ ] **Step 2:** Rodar → FAIL.
 - [ ] **Step 3:** Implementar os quatro arquivos com as assinaturas acima.
 - [ ] **Step 4:** Rodar → PASS.
-- [ ] **Step 5: Commit** — `feat(core): balanceamento, armas, portões e faixas`
+- [ ] **Step 5: Commit** — `feat(core): adiciona balanceamento, armas, portões e faixas`
 
 ---
 
@@ -173,7 +174,7 @@
 - [ ] **Step 4:** Rodar → FAIL.
 - [ ] **Step 5: Implementar.** `renderUnits`: decomposição gulosa do maior nível para o menor, uma unidade por herói-do-nível; se o total exceder `cap`, os excedentes viram `weight` extra nas unidades do maior nível existente (distribuídos da primeira para a última, nunca criando unidades além do `cap`). `formationOffsets`: espiral de girassol — unidade `k` em raio `spacing × √k`, ângulo `k × 137,508°`.
 - [ ] **Step 6:** Rodar → PASS.
-- [ ] **Step 7: Commit** — `feat(core): tropa, níveis de herói, formação e clampDelta`
+- [ ] **Step 7: Commit** — `feat(core): adiciona tropa, níveis de herói, formação e clampDelta`
 
 ---
 
@@ -211,7 +212,7 @@
 
 - [ ] **Step 1: Testes que falham:** `bossHp(1)` = 640; `bossHp(2)` = 1024; `bossPoints(3)` = 1500; score: 250 px + 1 comum + 1 forte + chefão 1 → `2 + 10 + 50 + 500 = 562`; `addDistance` acumula frações (`0,5 px × 300` → 150 px → 1 metro); `enemyDef('strong').heroesLost === 5`. Health: `applyDamage(createHealth(3), 5)` → `hp 0` e `isDepleted`; `healthRatio` de 10/40 = 0,25; `applyDamage` não altera o objeto original. Geometry: círculos de raio 10 com centros a 19 → `true`; a 20 → `false` (encostar exatamente não conta); mesmo centro → `true`.
 - [ ] **Step 2:** Rodar → FAIL. **Step 3:** Implementar. **Step 4:** Rodar → PASS.
-- [ ] **Step 5: Commit** — `feat(core): inimigos, chefão, pontuação, vida e geometria`
+- [ ] **Step 5: Commit** — `feat(core): adiciona inimigos, chefão, pontuação, vida e geometria`
 
 ---
 
@@ -235,7 +236,7 @@
 
 - [ ] **Step 1: Testes que falham:** `isBossChunk(8)` true, `(7)` false, `(16)` true; `templateWeights(1).lesserEvil === 0`; `templateWeights(30).classicPair === 15`; `templateWeights(100)` igual a `templateWeights(30)`; `templateWeights(16).classicPair` estritamente entre 15 e 30; `scrollSpeed(1) === 120`; `scrollSpeed(1000) === 180`; `threatBudget` não decrescente de 1 a 500.
 - [ ] **Step 2:** Rodar → FAIL. **Step 3:** Implementar. **Step 4:** Rodar → PASS.
-- [ ] **Step 5: Commit** — `feat(core): curva de dificuldade`
+- [ ] **Step 5: Commit** — `feat(core): adiciona curva de dificuldade`
 
 ---
 
@@ -280,7 +281,7 @@
   - Horda: gasta `threatBudget(i)`; enquanto sobrar ≥ 1, se `i ≥ 5`, orçamento ≥ 8 e `rng.next() < 0.25` → `strong`, senão `common`; `x` em `[0.1, 0.9]`, `offset` em `[0, 1)`.
 - [ ] **Step 5:** Rodar → PASS (unitários + propriedade).
 - [ ] **Step 6:** Escrever `docs/aprendendo/08-geracao-procedural.md` (moldes, sorteio ponderado, travas, por que testar com 10.000 seeds; analogia: validação de schema + property-based testing tipo fast-check).
-- [ ] **Step 7: Commit** — `feat(core): gerador de trechos com travas de justiça`
+- [ ] **Step 7: Commit** — `feat(core): adiciona gerador de trechos com travas de justiça`
 
 ---
 
@@ -310,7 +311,7 @@
 - [ ] **Step 6: Smoke test** `tests/e2e/smoke.spec.ts`: abre `/?seed=1`, coleta `console` de tipo error e `pageerror`; espera `body[data-scene="Start"]`; clica no canvas; espera `body[data-scene="Run"]`; aguarda 5 s; espera não haver erros; `page.screenshot({ path: 'test-results/smoke.png' })`.
 - [ ] **Step 7:** `npm test`, `npm run test:e2e` → PASS.
 - [ ] **Step 8:** Escrever `docs/aprendendo/02-cenas.md` (analogia: rotas do React Router, com `init/preload/create/update`) e `03-coordenadas-e-escala.md` (720×1280 lógico, `Scale.FIT`, origem no canto superior esquerdo, y cresce para baixo; analogia: `viewBox` de SVG).
-- [ ] **Step 9: Commit** — `feat(game): cenas, escala, pausa, recorde e smoke test`
+- [ ] **Step 9: Commit** — `feat(game): adiciona cenas, escala, pausa, recorde e smoke test`
 
 ---
 
@@ -346,7 +347,7 @@
 - [ ] **Step 2:** Implementar `Squad` e `DragInput`. Em `RunScene.update(time, delta)`: `const dt = clampDelta(delta)` e `squad.update(dt, input.targetX)`. Remover o placeholder de 3 s; temporariamente, a tecla/toque não encerra a partida.
 - [ ] **Step 3: Verificar manualmente:** `npm run dev`, abrir no desktop e no celular pelo IP; arrastar move a tropa suavemente e ela não sai dos limites. `npm run test:e2e` → PASS.
 - [ ] **Step 4:** Escrever docs `01-game-loop-e-delta.md` (analogia: `requestAnimationFrame`; por que multiplicar por delta; por que `clampDelta`), `04-entrada-de-toque.md` (eventos de ponteiro unificam mouse e toque; analogia com Pointer Events do DOM) e `09-regras-vs-renderizacao.md` (core × entities × views; analogia: estado do Redux/reducer × componentes React).
-- [ ] **Step 5: Commit** — `feat(game): tropa com formação e controle por arrasto`
+- [ ] **Step 5: Commit** — `feat(game): exibe tropa com formação e controle por arrasto`
 
 ---
 
@@ -374,7 +375,7 @@
 - [ ] **Step 2:** Implementar `FiringSystem` (`pool.acquire()?.fire(...)`): um acumulador de tempo por índice de unidade; cada unidade dispara a cada `1000 / shotsPerSecond` ms, a partir de `squad.x + offset.x`, `squad.y + offset.y`, com `unitShotDamage(level, unit)`. Ao mudar `units`, reiniciar os acumuladores com fase aleatória (para os tiros não saírem todos juntos).
 - [ ] **Step 3: Verificar:** com `?debug` desligado, a tropa de 1 herói dispara 1 tiro/s; trocando localmente `initialTroop` para `count: 300` (sem commitar) aparecem 6 Cavaleiros atirando sem queda visível de FPS. `npm run test:e2e` → PASS.
 - [ ] **Step 4:** Escrever `06-object-pooling.md` (analogia: pool de conexões do banco; o que acontece com o garbage collector sem pool) e `11-reaproveitamento-em-jogos.md` (tabela React ↔ game dev do ADR 0017: entidade guiada por dados × componente com props, módulo puro de comportamento × hook, view reutilizável × biblioteca de UI, composição × herança, regra de três; exemplos reais do código: `ObjectPool<T>`, `health.ts`, `geometry.ts`, `ProgressBar`; prévia dos padrões de assets: atlas, tint, 9-slice, animação esquelética).
-- [ ] **Step 5: Commit** — `feat(game): pool genérico e disparo automático`
+- [ ] **Step 5: Commit** — `feat(game): adiciona pool genérico e disparo automático`
 
 ---
 
@@ -399,7 +400,7 @@
 - [ ] **Step 3:** Em `RunScene`, manter `troop`/`score` como estado do core: `onEnemyKilled` → `score = addKill(...)`; `onSquadHit` → `squad.setState(takeHit(...))`; se `isDefeated` → vai para `GameOver` (fluxo final no Task 14). Spawn temporário de teste: uma fileira de 5 comuns a cada 2 s (removido no Task 12). `score = addDistance(score, scrollSpeed × dt / 1000)`.
 - [ ] **Step 4: Verificar:** monstros descem, morrem com tiros e removem heróis ao encostar; tropa zerada leva ao fim de jogo. `npm run test:e2e` → PASS.
 - [ ] **Step 5:** Escrever `05-fisica-arcade-e-colisoes.md` (corpos, overlap × collide, colisão por distância entre círculos; analogia: `IntersectionObserver`).
-- [ ] **Step 6: Commit** — `feat(game): inimigos, rolagem e colisões`
+- [ ] **Step 6: Commit** — `feat(game): adiciona inimigos, rolagem e colisões`
 
 ---
 
@@ -426,7 +427,7 @@
 - [ ] **Step 6:** Implementar `ChunkSpawner`: gera o próximo trecho quando o topo do trecho atual entra na tela; mapeia `offset` → y dentro de `CHUNK_LENGTH_PX` e fileira `row` → `y = topoDoTrecho + (row + 1) × CHUNK_LENGTH_PX / (GATE_ROWS + 1)`; inimigos em `x × 720`; tudo rola para baixo a `scrollSpeed(índice)`; destrói o que passa de `y > 1280 + OFFSCREEN_MARGIN_PX`. Remover o spawn temporário do Task 11.
 - [ ] **Step 7:** Colisões novas em `Collisions.ts`: projétil × portão `isShootable` (dentro de `bounds`) → `GateRow.hit(lane)`, mata o projétil; projéteis atravessam os demais portões. Projétil × caixa → `hit()`, mata o projétil; ao chegar a 0 → `upgradeWeapon`. Quando `GateRow.y` cruza `SQUAD_Y` e `!consumed` → `resolveRowCrossing` → `applyGate` (se houver) e `consumed = true`. Tropa × caixa (`circlesOverlap(squad.circle, crate.circle)`) → `upgradeWeapon`, `consumed = true`.
 - [ ] **Step 8: Verificar** com `?seed=1`: os primeiros trechos só têm par clássico, solitário bom ou só horda; os portões mudam a contagem; atirar em `-N` aumenta o valor; a caixa sobe a arma. `npm test` e `npm run test:e2e` → PASS.
-- [ ] **Step 9: Commit** — `feat(game): trechos procedurais com portões e caixas no mundo`
+- [ ] **Step 9: Commit** — `feat(game): posiciona trechos procedurais com portões e caixas no mundo`
 
 ---
 
@@ -443,7 +444,7 @@
 - [ ] **Step 2:** `ChunkSpawner`: quando o trecho do chefão chega à tela, chama `onBossChunk`, `isBossActive = true` e a rolagem vai a 0 (inimigos continuam caminhando); o próximo trecho só é gerado depois que o chefão morre.
 - [ ] **Step 3:** Colisões: projétil × chefão → `damage`; ao morrer → `score = addBossKill(score, n)`, `isBossActive = false`, a rolagem volta. Tropa × chefão (`circlesOverlap(squad.circle, boss.circle)`) → fim de jogo imediato.
 - [ ] **Step 4: Verificar** com `?seed=1&debug`: no trecho 8 aparece o chefão 1 com 640 de vida, o caminho para e volta a andar após derrotá-lo; deixar o chefão encostar encerra a partida. `npm run test:e2e` → PASS.
-- [ ] **Step 5: Commit** — `feat(game): chefão a cada 8 trechos`
+- [ ] **Step 5: Commit** — `feat(game): adiciona chefão a cada 8 trechos`
 
 ---
 
@@ -471,7 +472,7 @@
 - [ ] **Step 5:** `DebugOverlay` ativo só com `debug: true` (hitboxes, FPS, heróis, nível da arma, índice e molde do trecho, seed).
 - [ ] **Step 6: Verificar:** partida completa até o fim → tela com score; recorde persiste após recarregar; `?debug` mostra o painel; toques rápidos na tela de fim iniciam só uma partida. `npm run test:e2e` → PASS.
 - [ ] **Step 7:** Escrever `10-tweens-e-feedback.md` (o que é tween e easing; por que "juice" importa; analogia: transições CSS/Framer Motion).
-- [ ] **Step 8: Commit** — `feat(game): HUD, fim de jogo, recorde, feedback e modo debug`
+- [ ] **Step 8: Commit** — `feat(game): adiciona hud, fim de jogo, recorde, feedback e modo debug`
 
 ---
 
@@ -489,4 +490,4 @@
 - [ ] **Step 3:** Criar `docs/playtests/_modelo.md` com as perguntas: "Foi divertido? (1–5)", "Quanto durou a partida?", "Em que momento ficou chato?", "Algum momento injusto?", "Os portões foram escolhas interessantes?", "Atirar nos portões fez diferença?", "O chefão foi um clímax?", "Ideias".
 - [ ] **Step 4:** Conferir os critérios de aceitação do spec §10 um a um; marcar os cumpridos. O primeiro playtest é do autor: deixar o item desmarcado e registrar no README como jogar no celular.
 - [ ] **Step 5:** Atualizar o status do spec para `implementado (aguardando playtest)`.
-- [ ] **Step 6: Commit** — `test(e2e): smoke completo; docs: modelo de playtest e status do spec`
+- [ ] **Step 6: Commit** — `test(e2e): completa smoke test, modelo de playtest e status do spec`
