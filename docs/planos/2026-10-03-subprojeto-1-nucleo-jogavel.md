@@ -431,6 +431,35 @@
 
 ---
 
+### Task 12b: Rebalanceamento adaptativo (playtest 2026-10-03)
+
+> Acrescentado após o playtest de 2026-10-03. Spec §4.2, §4.3, §4.5, §4.6 revisados; ADRs 0020 e 0021.
+
+**Files:**
+- Modify: `src/core/balance.ts`, `src/core/gates.ts`, `src/core/difficulty.ts`, `src/core/chunks.ts`, `src/core/chunkTemplates.ts`, `src/core/guardrails.ts`, `src/game/systems/ChunkSpawner.ts`, `src/game/RunWorld.ts`, `src/game/entities/GateRow.ts` e os testes de `tests/core/` afetados
+
+**Interfaces:**
+- `balance.ts`: `WEAPON_LEVELS` com tiros/s 1, 1,5, 1,5, 2, 2; `PROJECTILE_SPEED = 700`; `ENEMIES` com hp 6 e 80; `BOSS.baseHp = 800`; `DIVIDE_VALUES = [2, 3]` (substitui `DIVIDE_VALUE`); `PRESSURE_THRESHOLDS = [50, 250, 1000]`; `STRONG_CHANCE_BY_PRESSURE = [0.25, 0.35, 0.45, 0.6]`; `PUNITIVE_MULTIPLIER_BY_PRESSURE = [1, 1.5, 2, 3]`; `HORDE_TROOP_SHARE = 0.1`; `NEGATIVE_GATE_TROOP_SHARE = [0.1, 0.4]`; `GATE_SHOT_CAP_MULTIPLIER = 2`; `GATE_SHOT_MIN_CAP = 10`; `HORDE_WAVES = [2, 3]`; `HORDE_WAVE_SPREAD = 0.12`. `minExpectedTroop` e `STRONG_ENEMY_CHANCE` removidos.
+- `gates.ts`: soma vira `{ kind: 'sum'; value: number; max: number }`; `createSumGate(value: number): Gate` calcula `max = máx(2 × value, 10)`; `hitGate` respeita `max`.
+- `difficulty.ts`: `type Pressure = 0 | 1 | 2 | 3`; `pressureLevel(troopCount): Pressure`; `templateWeights(chunkIndex, pressure)`; `hordeBudget(chunkIndex, troopCount)`; `strongEnemyChance(pressure)`.
+- `chunks.ts`: `ChunkGenerator.next(troopCount: number): Chunk`.
+- `guardrails.ts`: `violatedGuardrails(history, candidate, troopCount)`; trava 1 usa a tropa real.
+- `ChunkSpawner`: recebe `troopCount: () => number`.
+
+- [ ] **Step 1: Testes que falham** (atualizar os existentes e acrescentar):
+  - weapons: `weaponStats(2).shotsPerSecond === 1.5`; `weaponStats(6).shotsPerSecond === 2`.
+  - gates: `createSumGate(45).max === 90`; `createSumGate(-8).max === 10`; `-8` atingido 30× para em `+10`; `+45` atingido 100× para em `+90`.
+  - enemies: comum hp 6; `bossHp(1) === 1280`.
+  - difficulty: `pressureLevel(49) === 0`, `(50) === 1`, `(250) === 2`, `(1000) === 3`; `templateWeights(30, 3).lesserEvil === 36` e `.classicPair === 15`; `hordeBudget(1, 10) === 11`; `hordeBudget(1, 500) === 61`.
+  - guardrails: trava 1 avaliada com a tropa passada (um trecho `-25`/`-30` viola com tropa 20 e passa com tropa 100).
+  - templates: com tropa 500, todo `-N` gerado em trecho ≥ 5 tem N ≥ 50; existe `÷3` em 1000 trechos gerados; inimigos de um trecho ficam em no máximo 3 grupos (offsets dentro de `HORDE_WAVE_SPREAD` de um centro).
+  - propriedade: 10.000 seeds × 60 trechos com tropas variando entre 1 e 5000 (sorteadas por seed), sem violar travas e com custo ≤ `hordeBudget`.
+- [ ] **Step 2:** Rodar → FAIL. **Step 3:** Implementar. **Step 4:** Rodar → PASS + `npm run check` + smoke.
+- [ ] **Step 5:** Atualizar `docs/aprendendo/08-geracao-procedural.md` (pressão pela tropa) e `docs/playtests/2026-10-03.md`.
+- [ ] **Step 6: Commit** — `feat(core): dificuldade acompanha o tamanho da tropa`
+
+---
+
 ### Task 13: Chefão
 
 **Files:**

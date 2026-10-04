@@ -37,15 +37,17 @@ Todos os números abaixo são **valores iniciais** e vivem em `src/core/balance.
 | Nível | Nome | Dano base | Tiros/s por unidade |
 |---|---|---|---|
 | 1 | Estilingue | 1 | 1 |
-| 2 | Arco | 1,5 | 2 |
-| 3 | Besta | 2,25 | 3 |
-| 4 | Cajado | 3,4 | 3 |
-| 5 | Canhão | 5 | 3 |
-| 6+ | (Canhão +N) | ×1,5 por nível | 3 |
+| 2 | Arco | 1,5 | 1,5 |
+| 3 | Besta | 2,25 | 1,5 |
+| 4 | Cajado | 3,4 | 2 |
+| 5 | Canhão | 5 | 2 |
+| 6+ | (Canhão +N) | ×1,5 por nível | 2 |
+
+Projéteis voam a 700 px/s. *(Revisado após playtest de 2026-10-03: a cadência escalava rápido demais; a progressão das armas vem principalmente do dano.)*
 
 ### 4.3 Portões
-- `+N` / `-N`: soma/subtrai N. Cada projétil que acerta adiciona +1 ao valor (um `-8` atingido 10 vezes vira `+2`). O acerto consome o projétil.
-- `xN` (N ∈ {2, 3}) / `÷N` (N = 2, arredonda para baixo): fixos; projéteis passam por eles sem efeito.
+- `+N` / `-N`: soma/subtrai N. Cada projétil que acerta adiciona +1 ao valor, **até um teto = máx(2 × valor inicial, +10)** (ADR 0021): um `-8` atingido 10 vezes vira `+2` e para em `+10`; um `+45` para em `+90`. O acerto consome o projétil mesmo com o portão no teto.
+- `xN` (N ∈ {2, 3}) / `÷N` (N ∈ {2, 3}, arredonda para baixo): fixos; projéteis passam por eles sem efeito.
 - `Arma +1`: sobe um nível de arma.
 - `+1 Cavaleiro`: soma 50 heróis.
 - Passar por um portão aplica o efeito uma vez; `count` nunca fica negativo (mínimo 0 → fim de jogo).
@@ -56,16 +58,18 @@ Aparece no caminho. Sobe a arma +1 se a tropa passar por ela **ou** se receber p
 ### 4.5 Inimigos
 | Tipo | Vida | Velocidade relativa | Heróis removidos ao encostar | Pontos |
 |---|---|---|---|---|
-| Comum | 3 | 1,0 | 1 | 10 |
-| Forte | 40 | 0,6 | 5 | 50 |
-| Chefão | 400 × (1,6 ^ nº do chefão) | 0,35 | **fim de jogo** | 500 × nº do chefão |
+| Comum | 6 | 1,0 | 1 | 10 |
+| Forte | 80 | 0,6 | 5 | 50 |
+| Chefão | 800 × (1,6 ^ nº do chefão) | 0,35 | **fim de jogo** | 500 × nº do chefão |
+
+*(Vidas dobradas após playtest de 2026-10-03.)*
 
 Comuns e fortes somem ao encostar. Se o encontro remove mais heróis do que a tropa tem, `count` vai a 0.
 
 ### 4.6 Trechos (geração procedural)
 O caminho é uma sequência de trechos. Um **sorteador ponderado** escolhe o próximo **molde**, preenche seus parâmetros com o RNG e aplica as **travas de justiça**.
 
-**Moldes** (peso no início → peso a partir do trecho 30, interpolação linear):
+**Moldes** (peso no início → peso a partir do trecho 30, interpolação linear; os pesos dos moldes punitivos são multiplicados pela pressão da tropa, abaixo):
 
 | Molde | Conteúdo | Peso |
 |---|---|---|
@@ -77,14 +81,26 @@ O caminho é uma sequência de trechos. Um **sorteador ponderado** escolhe o pr�
 | Caixa de arma | caixa no meio da horda | 8 → 8 |
 | Só horda | apenas combate | 20 → 15 |
 
-**Horda:** cada trecho gasta um **orçamento de ameaça** = `8 + 3 × índiceDoTrecho` (custo: comum = 1, forte = 8; fortes só a partir do trecho 5).
+**Pressão pela tropa (ADR 0020):** cada trecho é gerado conhecendo a tropa atual. O nível de pressão segue os marcos dos níveis de herói:
 
-**Valores de portão** escalam com o índice do trecho (ex.: `+N` com N entre 5 e `5 + índice`; `-N` similar), definidos em `balance.ts`.
+| Tropa | Pressão | Chance de inimigo forte | Multiplicador dos pesos punitivos | Orçamento extra da horda |
+|---|---|---|---|---|
+| < 50 | 0 | 25% | ×1 | 0 |
+| 50–249 | 1 | 35% | ×1,5 | 10% da tropa |
+| 250–999 | 2 | 45% | ×2 | 10% da tropa |
+| ≥ 1000 | 3 | 60% | ×3 | 10% da tropa |
+
+**Horda:** cada trecho gasta um **orçamento de ameaça** = `8 + 3 × índiceDoTrecho` + o extra da pressão (custo: comum = 1, forte = 8; fortes só a partir do trecho 5). Os monstros chegam em **2 ou 3 ondas agrupadas** por trecho (não espalhados pelo trecho inteiro).
+
+**Valores de portão:**
+- `+N`: N entre 5 e `5 + índice` (só a distância; com tropa grande ele fica relativamente pequeno e quem escala são os multiplicadores).
+- `-N`: N = o maior entre um sorteio em `[3, 3 + índice]` e um sorteio de **10% a 40% da tropa atual** (ex.: com 500 heróis, entre `-50` e `-200`).
+- `÷N`: N sorteado entre 2 e 3. O par "menos pior" pode combinar, por exemplo, `÷2` × `÷3` ou `-100` × `-20`.
 
 **Chefão:** os trechos de índice múltiplo de 8 (8, 16, 24…) são trechos de chefão (não usam moldes). No trecho do chefão o avanço do caminho para; o chefão desce em direção à tropa acompanhado de uma horda leve. Derrotado, o caminho volta a andar.
 
 **Travas de justiça** (o gerador nunca as viola):
-1. Todo trecho tem ao menos um caminho horizontal que, sozinho, não zera uma tropa com o tamanho mínimo esperado naquele ponto, dado pela função `minExpectedTroop(índiceDoTrecho)` em `balance.ts` (valor inicial: `max(1, 2 × índiceDoTrecho)`).
+1. Todo trecho tem ao menos um caminho horizontal que, sozinho, não zera a **tropa atual** no momento em que o trecho é gerado.
 2. Par "menos pior" sempre contém um `-N` melhorável por tiros.
 3. No máximo 2 trechos punitivos seguidos (punitivos = "menos pior" e "corredor de obstáculos").
 4. O trecho imediatamente anterior ao chefão é sempre "par melhor dos bons" ou "caixa de arma".
