@@ -35,6 +35,13 @@ Siga `docs/specs/2026-10-03-padroes-de-codigo.md`. Resumo:
 - Formato: `tipo(escopo): descrição em português, minúscula, sem ponto final` (≤ 100 caracteres). Tipos: feat, fix, refactor, perf, test, docs, style, build, ci, chore, revert. Escopos: core, game, platform, e2e, deps, ci, spec, plano, adr, aprendendo, playtest.
 - **Nunca use `--no-verify`.** Hook falhou → corrija a causa e crie um commit novo.
 
+## Linear
+
+- Projeto único **Horde Runner v1.0** (time Personal, chave `DAV`): https://linear.app/livratocapital/project/horde-runner-v10-521cd8f7851e
+- Milestones = subprojetos (1 · Núcleo jogável, 2 · Arte, som e juice, 3 · Progressão, 4 · Mobile e publicação).
+- Cada issue = uma tarefa do plano do subprojeto. Subprojeto 1: `DAV-1`…`DAV-15` = Tasks 1…15.
+- Ao começar uma tarefa, a issue vai para In Progress; ao concluí-la (testes e `npm run check` passando, commit feito), vai para Done. O repositório continua sendo a fonte da verdade.
+
 ## Idioma
 
 Docs em português. Código (nomes, identificadores) em inglês.
