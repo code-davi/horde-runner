@@ -43,6 +43,16 @@ export class Squad {
     this.view.render(this, this.renderedUnits);
   }
 
+  /** Reação visual a dano. */
+  flashHit(): void {
+    this.view.flash();
+  }
+
+  /** Reação visual a uma mudança boa ou ruim (portão, arma). */
+  punch(): void {
+    this.view.punch();
+  }
+
   /** Move a tropa em direção a `targetX`, limitada pela velocidade e pelas bordas. */
   update(deltaMs: number, targetX: number): void {
     const maxStep = (SQUAD_FOLLOW_SPEED * deltaMs) / 1000;

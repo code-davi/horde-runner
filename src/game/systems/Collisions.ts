@@ -9,7 +9,7 @@ import type { ObjectPool } from './ObjectPool';
 
 /** O que a cena quer saber das colisões; as regras de cada efeito ficam no core. */
 export interface CollisionEvents {
-  onEnemyKilled(kind: EnemyKind): void;
+  onEnemyKilled(kind: EnemyKind, at: { x: number; y: number }): void;
   onSquadHit(heroesLost: number): void;
 }
 
@@ -47,6 +47,7 @@ export class CollisionSystem {
   private onProjectileHitsEnemy(projectile: Projectile, enemy: Enemy): void {
     if (!projectile.active || !enemy.active) return;
     projectile.kill();
-    if (enemy.damage(projectile.damage)) this.deps.events.onEnemyKilled(enemy.kind);
+    const at = { x: enemy.x, y: enemy.y };
+    if (enemy.damage(projectile.damage)) this.deps.events.onEnemyKilled(enemy.kind, at);
   }
 }

@@ -3,6 +3,8 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../dimensions';
 import { markScene } from '../sceneMarker';
 import { centeredText } from '../views/text';
 
+const INPUT_GUARD_MS = 500;
+
 export interface GameOverData {
   readonly score: number;
   readonly highScore: number;
@@ -23,7 +25,10 @@ export class GameOverScene extends Phaser.Scene {
       centeredText(this, 'Novo recorde!', { x, y: GAME_HEIGHT * 0.61, size: 44 });
     centeredText(this, 'Toque para jogar de novo', { x, y: GAME_HEIGHT * 0.75, size: 40 });
 
-    this.input.once('pointerdown', () => this.scene.start('Start'));
+    // Ignora toques logo após abrir (o dedo ainda pode estar na tela) e aceita um só.
+    this.time.delayedCall(INPUT_GUARD_MS, () => {
+      this.input.once('pointerdown', () => this.scene.start('Start'));
+    });
     markScene('GameOver');
   }
 }

@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import { formationOffsets } from '../../core/formation';
 import type { RenderUnit } from '../../core/troop';
+import { flash, punch } from './feedback';
 import { PALETTE } from './palette';
 
 /** Raio de cada nível de herói, em px. */
@@ -9,11 +10,13 @@ const OUTLINE_WIDTH = 3;
 
 /** Desenha a tropa com formas geométricas; só redesenha quando as unidades mudam. */
 export class SquadView {
+  private readonly scene: Phaser.Scene;
   private readonly graphics: Phaser.GameObjects.Graphics;
   private drawnUnits: readonly RenderUnit[] = [];
   private boundingRadius = 0;
 
   constructor(scene: Phaser.Scene) {
+    this.scene = scene;
     this.graphics = scene.add.graphics();
   }
 
@@ -25,6 +28,16 @@ export class SquadView {
   render(position: { x: number; y: number }, units: readonly RenderUnit[]): void {
     if (units !== this.drawnUnits) this.redraw(units);
     this.graphics.setPosition(position.x, position.y);
+  }
+
+  /** A tropa tomou dano. */
+  flash(): void {
+    flash(this.scene, this.graphics);
+  }
+
+  /** A tropa mudou (portão, arma). */
+  punch(): void {
+    punch(this.scene, this.graphics);
   }
 
   destroy(): void {
