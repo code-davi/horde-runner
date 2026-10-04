@@ -54,6 +54,13 @@ export const SQUAD_MAX_X = 640;
 /** Velocidade máxima com que a tropa segue o dedo, em px/s. */
 export const SQUAD_FOLLOW_SPEED = 2200;
 
+/** Velocidade dos projéteis, em px/s (para cima). */
+export const PROJECTILE_SPEED = 900;
+/** Máximo de projéteis ao mesmo tempo; acima disso, novos disparos são ignorados. */
+export const PROJECTILE_POOL_SIZE = 400;
+/** Margem fora da tela a partir da qual objetos são reciclados, em px. */
+export const OFFSCREEN_MARGIN_PX = 120;
+
 /** Máximo de unidades de herói desenhadas; acima disso as unidades do maior nível ganham peso extra. */
 export const MAX_RENDERED_UNITS = 120;
 /** Distância base entre heróis na formação, em px. */
