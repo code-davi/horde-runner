@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
-import { PROJECTILE_POOL_SIZE } from '../../core/balance';
-import { scrollSpeed } from '../../core/difficulty';
 import type { EnemyKind } from '../../core/enemies';
+import type { Gate } from '../../core/gates';
 import {
   addDistance,
   addKill,
@@ -10,33 +9,17 @@ import {
   type ScoreState,
 } from '../../core/scoring';
 import { clampDelta } from '../../core/time';
-import { isDefeated, takeHit } from '../../core/troop';
+import { applyGate, isDefeated, takeHit, upgradeWeapon, type TroopState } from '../../core/troop';
 import { createBrowserSaveStore } from '../../platform/storage';
-import { GAME_WIDTH } from '../dimensions';
-import { Projectile } from '../entities/Projectile';
-import { Squad } from '../entities/Squad';
 import { installPauseOnBlur } from '../pauseOnBlur';
+import { RunWorld } from '../RunWorld';
 import { markScene } from '../sceneMarker';
-import { CollisionSystem } from '../systems/Collisions';
-import { DragInput } from '../systems/DragInput';
-import { EnemySystem } from '../systems/EnemySystem';
-import { FiringSystem } from '../systems/FiringSystem';
-import { ObjectPool } from '../systems/ObjectPool';
 import type { UrlOptions } from '../urlOptions';
 import type { GameOverData } from './GameOverScene';
 
-/** Spawn temporário do Task 11 (substituído pelos trechos procedurais no Task 12). */
-const TEST_ROW_EVERY_MS = 2000;
-const TEST_ROW_SIZE = 5;
-const SPAWN_Y = -40;
-
-/** A partida. Cada Task 9–14 acrescenta um sistema; as regras moram em src/core. */
+/** A partida: liga os eventos do mundo às regras do core e cuida do score e do fim de jogo. */
 export class RunScene extends Phaser.Scene {
-  private squad!: Squad;
-  private drag!: DragInput;
-  private firing!: FiringSystem;
-  private enemies!: EnemySystem;
-  private collisions!: CollisionSystem;
+  private world!: RunWorld;
   private score: ScoreState = initialScore;
   private finished = false;
 
@@ -44,57 +27,39 @@ export class RunScene extends Phaser.Scene {
     super('Run');
   }
 
-  create(_options: UrlOptions): void {
+  create(options: UrlOptions): void {
     this.score = initialScore;
     this.finished = false;
-    this.squad = new Squad(this);
-    this.drag = new DragInput(this, this.squad.x);
-    const projectiles = new ObjectPool(this, {
-      classType: Projectile,
-      maxSize: PROJECTILE_POOL_SIZE,
-    });
-    this.firing = new FiringSystem(projectiles);
-    this.enemies = new EnemySystem(this);
-    this.collisions = new CollisionSystem(this, {
-      projectiles,
-      enemies: this.enemies,
-      squad: this.squad,
-      events: {
-        onEnemyKilled: (kind) => this.onEnemyKilled(kind),
-        onSquadHit: (heroesLost) => this.onSquadHit(heroesLost),
-      },
-    });
-    this.time.addEvent({
-      delay: TEST_ROW_EVERY_MS,
-      loop: true,
-      callback: () => this.spawnTestRow(),
+    this.world = new RunWorld(this, options.seed, {
+      onEnemyKilled: (kind) => this.onEnemyKilled(kind),
+      onSquadHit: (heroesLost) => this.changeTroop((troop) => takeHit(troop, heroesLost)),
+      onGateCrossed: (gate) => this.onGateCrossed(gate),
+      onWeaponUpgrade: () => this.changeTroop(upgradeWeapon),
     });
     installPauseOnBlur(this);
     markScene('Run');
   }
 
   override update(_time: number, delta: number): void {
+    if (this.finished) return;
     const dt = clampDelta(delta);
-    const speed = scrollSpeed(1);
-    this.score = addDistance(this.score, (speed * dt) / 1000);
-    this.squad.update(dt, this.drag.targetX);
-    this.firing.update(dt, this.squad);
-    this.enemies.update(speed);
-    this.collisions.update();
-  }
-
-  private spawnTestRow(): void {
-    const gap = GAME_WIDTH / (TEST_ROW_SIZE + 1);
-    for (let i = 1; i <= TEST_ROW_SIZE; i++) this.enemies.spawn('common', gap * i, SPAWN_Y);
+    this.score = addDistance(this.score, (this.world.scrollSpeed * dt) / 1000);
+    this.world.update(dt);
   }
 
   private onEnemyKilled(kind: EnemyKind): void {
     this.score = addKill(this.score, kind);
   }
 
-  private onSquadHit(heroesLost: number): void {
-    this.squad.setState(takeHit(this.squad.state, heroesLost));
-    if (isDefeated(this.squad.state)) this.finish(totalScore(this.score));
+  private onGateCrossed(gate: Gate): void {
+    this.changeTroop((troop) => applyGate(troop, gate));
+  }
+
+  /** Única porta de mudança da tropa: aplica a regra e checa a derrota. */
+  private changeTroop(rule: (troop: TroopState) => TroopState): void {
+    const squad = this.world.squad;
+    squad.setState(rule(squad.state));
+    if (isDefeated(squad.state)) this.finish(totalScore(this.score));
   }
 
   /** Encerra a partida uma única vez, grava o recorde e vai para o fim de jogo. */

@@ -45,6 +45,14 @@ export function subtractGateRange(chunkIndex: number): [number, number] {
 
 /** Coordenada x que divide a faixa esquerda da direita. */
 export const LANE_SPLIT_X = 360;
+/** Centro horizontal de cada faixa. */
+export const LANE_CENTER_X = { left: 180, right: 540 } as const;
+
+/** Comprimento de um trecho do caminho, em px. */
+export const CHUNK_LENGTH_PX = 1200;
+export const GATE_WIDTH = 330;
+export const GATE_HEIGHT = 70;
+export const CRATE_SIZE = 70;
 
 /** Linha (y) onde a tropa fica na tela. */
 export const SQUAD_Y = 1100;
