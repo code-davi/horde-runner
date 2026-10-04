@@ -1,6 +1,7 @@
 // Todos os números de balanceamento do jogo vivem aqui (spec do subprojeto 1, §4).
 // Ajustá-los durante os playtests é esperado; mudar uma regra exige atualizar o spec.
 
+import type { TemplateKind } from './difficulty';
 import type { EnemyDef } from './enemies';
 
 /** Níveis de herói: o total da tropa é exibido decomposto nesses valores (ADR 0007). */
@@ -63,3 +64,35 @@ export const BOSS = { baseHp: 400, hpGrowth: 1.6, speed: 0.35, pointsPerBoss: 50
 export const ENEMY_BASE_WALK_SPEED = 80;
 /** Quantos px de rolagem valem 1 metro no score. */
 export const PX_PER_METER = 100;
+
+/** Um chefão a cada N trechos (trechos 8, 16, 24...). */
+export const BOSS_EVERY = 8;
+/** Primeiro trecho em que inimigos fortes podem aparecer. */
+export const STRONG_ENEMY_MIN_CHUNK = 5;
+/** Velocidade de rolagem do caminho no trecho 1, em px/s. */
+export const BASE_SCROLL_SPEED = 120;
+export const SPEED_GROWTH_PER_CHUNK = 0.01;
+export const MAX_SPEED_BONUS = 0.5;
+/** Trecho em que os pesos dos moldes chegam aos valores finais. */
+export const WEIGHT_RAMP_CHUNKS = 30;
+
+/** Peso de cada molde de trecho: [no início, a partir de WEIGHT_RAMP_CHUNKS] (spec §4.6). */
+export const TEMPLATE_WEIGHTS: Record<TemplateKind, readonly [number, number]> = {
+  classicPair: [30, 15],
+  lesserEvil: [0, 12],
+  bestOfGood: [15, 8],
+  loneGate: [15, 15],
+  obstacleCorridor: [0, 12],
+  weaponCrate: [8, 8],
+  hordeOnly: [20, 15],
+};
+
+/** Quanto "custo de inimigo" a horda de um trecho pode gastar. */
+export function threatBudget(chunkIndex: number): number {
+  return 8 + 3 * chunkIndex;
+}
+
+/** Menor tropa esperada num trecho; usada pela trava de justiça 1. */
+export function minExpectedTroop(chunkIndex: number): number {
+  return Math.max(1, 2 * chunkIndex);
+}
