@@ -1,6 +1,8 @@
 // Todos os números de balanceamento do jogo vivem aqui (spec do subprojeto 1, §4).
 // Ajustá-los durante os playtests é esperado; mudar uma regra exige atualizar o spec.
 
+import type { EnemyDef } from './enemies';
+
 /** Níveis de herói: o total da tropa é exibido decomposto nesses valores (ADR 0007). */
 export const HERO_TIERS = [
   { name: 'Recruta', value: 1 },
@@ -49,3 +51,15 @@ export const MAX_RENDERED_UNITS = 120;
 export const FORMATION_SPACING = 22;
 /** Maior delta de frame aceito, em ms (evita "teletransporte" ao voltar de outro app). */
 export const MAX_FRAME_DELTA_MS = 50;
+
+export const ENEMIES = {
+  common: { hp: 3, speed: 1.0, heroesLost: 1, points: 10, cost: 1, radius: 18 },
+  strong: { hp: 40, speed: 0.6, heroesLost: 5, points: 50, cost: 8, radius: 32 },
+} as const satisfies Record<string, EnemyDef>;
+
+export const BOSS = { baseHp: 400, hpGrowth: 1.6, speed: 0.35, pointsPerBoss: 500, radius: 70 };
+
+/** Velocidade de caminhada de um inimigo com `speed` 1, em px/s (somada à rolagem). */
+export const ENEMY_BASE_WALK_SPEED = 80;
+/** Quantos px de rolagem valem 1 metro no score. */
+export const PX_PER_METER = 100;
