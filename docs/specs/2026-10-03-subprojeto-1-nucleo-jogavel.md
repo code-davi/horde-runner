@@ -1,6 +1,6 @@
 # Spec — Subprojeto 1: Núcleo jogável
 
-> **Status:** aprovado · **Data:** 2026-10-03
+> **Status:** implementado (aguardando playtest final) · **Data:** 2026-10-03 · **Implementado:** 2026-10-04
 > **Visão:** `docs/visao/GDD.md` · **Decisões:** `docs/decisoes/`
 
 ## 1. Objetivo
@@ -179,9 +179,9 @@ Cada conceito ganha um arquivo em `docs/aprendendo/` (o que é, por que existe, 
 
 ## 10. Critérios de aceitação
 
-- [ ] Jogo roda via `npm run dev` no desktop e no celular pela rede local (`vite --host`).
-- [ ] Todas as regras da seção 4 implementadas e visíveis com formas geométricas.
-- [ ] Testes de `core/`, teste de propriedade e smoke test passando no CI.
-- [ ] Modo debug funcional.
-- [ ] 10 documentos de aprendizado escritos.
-- [ ] Primeiro playtest registrado em `docs/playtests/`.
+- [x] Jogo roda via `npm run dev` no desktop e no celular pela rede local (`vite --host`).
+- [x] Todas as regras da seção 4 implementadas e visíveis com formas geométricas.
+- [ ] Testes de `core/`, teste de propriedade e smoke test passando no CI. *(Passam localmente; o workflow de CI existe, mas ainda não rodou porque o repositório não tem remoto no GitHub.)*
+- [x] Modo debug funcional.
+- [x] 10 documentos de aprendizado escritos (11, com o de reaproveitamento).
+- [x] Primeiro playtest registrado em `docs/playtests/`.

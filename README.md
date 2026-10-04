@@ -11,6 +11,19 @@ npm run dev      # abre em http://localhost:5173
 
 **No celular:** com o celular na mesma rede Wi-Fi, abra o endereço `Network` que o `npm run dev` mostra no terminal (ex.: `http://192.168.0.10:5173`).
 
+## Opções na URL
+
+| URL         | O que faz                                                                          |
+| ----------- | ---------------------------------------------------------------------------------- |
+| `?seed=123` | repete exatamente a mesma partida (mesmos trechos, se as escolhas forem as mesmas) |
+| `?debug`    | mostra FPS, heróis, arma, trecho e seed, e os contornos da física                  |
+
+Com `?debug`, o console do navegador (F12) ganha `__horde.setTroop(heróis, nívelDaArma)` e `__horde.endRun()`, úteis para testar situações específicas.
+
+## Playtest
+
+Depois de jogar, copie `docs/playtests/_modelo.md` para `docs/playtests/AAAA-MM-DD.md` e responda às perguntas.
+
 ## Scripts
 
 | Script                                  | O que faz                                                   |

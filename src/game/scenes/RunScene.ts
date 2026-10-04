@@ -78,11 +78,11 @@ export class RunScene extends Phaser.Scene {
     });
   }
 
-  /** Painel de debug + `window.__horde.setTroop` (usado pelo smoke test e para testar à mão). */
+  /** Painel de debug + `window.__horde` (`setTroop`, `endRun`), usados pelo smoke test e para testar à mão. */
   private enableDebug(): DebugOverlay {
     const setTroop = (count: number, weaponLevel: number): void =>
       this.world.squad.setState({ count, weaponLevel });
-    Object.assign(window, { __horde: { setTroop } });
+    Object.assign(window, { __horde: { setTroop, endRun: () => this.finish() } });
     return new DebugOverlay(this);
   }
 
