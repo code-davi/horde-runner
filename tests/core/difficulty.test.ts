@@ -3,6 +3,8 @@ import {
   bossNumberAt,
   hordeBudget,
   isBossChunk,
+  multiplyGateWeight,
+  multiplyValues,
   pressureLevel,
   scrollSpeed,
   strongEnemyChance,
@@ -74,14 +76,30 @@ describe('hordeBudget', () => {
     expect(hordeBudget(1, 10)).toBe(11);
   });
 
-  it('adds 10% of the troop once the pressure starts', () => {
-    expect(hordeBudget(1, 500)).toBe(61);
+  it('adds 25% of the troop once the pressure starts', () => {
+    expect(hordeBudget(1, 500)).toBe(136);
   });
 
   it('never decreases along the run', () => {
     const budgets = Array.from({ length: 500 }, (_, i) => hordeBudget(i + 1, 30));
 
     budgets.slice(1).forEach((budget, i) => expect(budget).toBeGreaterThanOrEqual(budgets[i]!));
+  });
+});
+
+describe('multiplier gates', () => {
+  it('get rarer as the troop pressure grows', () => {
+    expect(multiplyGateWeight(0)).toBe(1);
+    expect(multiplyGateWeight(1)).toBe(1 / 2);
+    expect(multiplyGateWeight(2)).toBe(1 / 3);
+    expect(multiplyGateWeight(3)).toBe(1 / 4);
+  });
+
+  it('only double from 250 heroes on', () => {
+    expect(multiplyValues(0)).toEqual([2, 3]);
+    expect(multiplyValues(1)).toEqual([2, 3]);
+    expect(multiplyValues(2)).toEqual([2]);
+    expect(multiplyValues(3)).toEqual([2]);
   });
 });
 

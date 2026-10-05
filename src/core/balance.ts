@@ -146,8 +146,10 @@ export const PRESSURE_THRESHOLDS = [50, 250, 1000] as const;
 /** Por nível de pressão (0–3). */
 export const STRONG_CHANCE_BY_PRESSURE = [0.25, 0.35, 0.45, 0.6] as const;
 export const PUNITIVE_MULTIPLIER_BY_PRESSURE = [1, 1.5, 2, 3] as const;
-/** Com pressão ≥ 1, a horda ganha essa fração da tropa como orçamento extra. */
-export const HORDE_TROOP_SHARE = 0.1;
+/** Com pressão ≥ 1, a horda ganha essa fração da tropa como orçamento extra (ADR 0023). */
+export const HORDE_TROOP_SHARE = 0.25;
+/** A partir deste nível de pressão (250+ heróis), o portão multiplicador é sempre x2 (ADR 0023). */
+export const DOUBLE_ONLY_PRESSURE = 2;
 /** Quantidade de ondas por trecho e quanto do trecho (0–1) cada onda ocupa. */
 export const HORDE_WAVES = [2, 3] as const;
 export const HORDE_WAVE_SPREAD = 0.12;

@@ -1,8 +1,10 @@
 import {
   BASE_SCROLL_SPEED,
   BOSS_EVERY,
+  DOUBLE_ONLY_PRESSURE,
   HORDE_TROOP_SHARE,
   MAX_SPEED_BONUS,
+  MULTIPLY_VALUES,
   PRESSURE_THRESHOLDS,
   PUNITIVE_MULTIPLIER_BY_PRESSURE,
   SPEED_GROWTH_PER_CHUNK,
@@ -50,6 +52,16 @@ export function strongEnemyChance(pressure: Pressure): number {
 export function hordeBudget(chunkIndex: number, troopCount: number): number {
   const troopExtra = pressureLevel(troopCount) > 0 ? HORDE_TROOP_SHARE * troopCount : 0;
   return threatBudget(chunkIndex) + Math.floor(troopExtra);
+}
+
+/** Peso do `xN` no sorteio do portão bom (os demais tipos pesam 1): mais raro com tropa grande. */
+export function multiplyGateWeight(pressure: Pressure): number {
+  return 1 / (1 + pressure);
+}
+
+/** Valores possíveis do `xN`: com tropa grande, só x2 (ADR 0023). */
+export function multiplyValues(pressure: Pressure): readonly number[] {
+  return pressure >= DOUBLE_ONLY_PRESSURE ? [MULTIPLY_VALUES[0]] : MULTIPLY_VALUES;
 }
 
 /** Pesos dos moldes no trecho: rampa pela distância e punitivos multiplicados pela pressão. */

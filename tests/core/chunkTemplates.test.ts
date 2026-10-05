@@ -46,6 +46,31 @@ describe('negative gates scale with the troop', () => {
   });
 });
 
+function goodGatesFrom(troop: number, runs: number): Gate[] {
+  const rng = createRng(8);
+  return Array.from({ length: runs }, () =>
+    fillTemplate('bestOfGood', { index: 10, troopCount: troop }, rng),
+  ).flatMap((content) => content.gates.map((placement) => placement.gate));
+}
+
+describe('multiplier gates for a big troop', () => {
+  const multiplierShare = (gates: Gate[]): number =>
+    gates.filter((gate) => gate.kind === 'multiply').length / gates.length;
+
+  it('never triple a troop of 400 heroes', () => {
+    const gates = goodGatesFrom(400, 500);
+
+    expect(gates.some((gate) => gate.kind === 'multiply')).toBe(true);
+    expect(gates.some((gate) => gate.kind === 'multiply' && gate.value === 3)).toBe(false);
+  });
+
+  it('show up less often for 400 heroes than for 10', () => {
+    expect(multiplierShare(goodGatesFrom(400, 500))).toBeLessThan(
+      multiplierShare(goodGatesFrom(10, 500)) * 0.6,
+    );
+  });
+});
+
 describe('fillHorde', () => {
   it('caps the horde size for giant troops (review: generation must not grow with the troop)', () => {
     const started = performance.now();

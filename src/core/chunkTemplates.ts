@@ -6,7 +6,6 @@ import {
   HORDE_WAVES,
   HORDE_WAVE_SPREAD,
   KNIGHT_GATE_MIN_CHUNK,
-  MULTIPLY_VALUES,
   NEGATIVE_GATE_TROOP_SHARE,
   STRONG_ENEMY_MIN_CHUNK,
   TUTORIAL_CHUNKS,
@@ -15,7 +14,14 @@ import {
   threatBudget,
 } from './balance';
 import type { Chunk, EnemySpawn, GatePlacement } from './chunks';
-import { hordeBudget, pressureLevel, strongEnemyChance, type TemplateKind } from './difficulty';
+import {
+  hordeBudget,
+  multiplyGateWeight,
+  multiplyValues,
+  pressureLevel,
+  strongEnemyChance,
+  type TemplateKind,
+} from './difficulty';
 import { enemyHp, type EnemyKind } from './enemies';
 import { createSumGate, type Gate } from './gates';
 import type { Lane } from './lanes';
@@ -28,6 +34,7 @@ export interface ChunkContext {
 }
 
 type ChunkContent = Pick<Chunk, 'gates' | 'crate'>;
+type GoodGateKind = Exclude<Gate['kind'], 'divide'>;
 
 const GATE_ROW = 1;
 const CRATE_OFFSET = 0.5;
@@ -117,12 +124,20 @@ function loneGate(ctx: ChunkContext, rng: Rng): Gate {
   return mustBeGood || rng.next() < 0.5 ? goodGate(ctx, rng) : badGate(ctx, rng);
 }
 
+/** Peso de cada tipo de portão bom: o `xN` fica mais raro com a pressão (ADR 0023). */
+function goodGateWeights(ctx: ChunkContext): Record<GoodGateKind, number> {
+  return {
+    sum: 1,
+    multiply: multiplyGateWeight(pressureLevel(ctx.troopCount)),
+    weapon: 1,
+    knight: ctx.index >= KNIGHT_GATE_MIN_CHUNK ? 1 : 0,
+  };
+}
+
 function goodGate(ctx: ChunkContext, rng: Rng): Gate {
-  const options: Gate['kind'][] = ['sum', 'multiply', 'weapon'];
-  if (ctx.index >= KNIGHT_GATE_MIN_CHUNK) options.push('knight');
-  switch (rng.pick(options)) {
+  switch (rng.weighted(goodGateWeights(ctx))) {
     case 'multiply':
-      return { kind: 'multiply', value: rng.pick(MULTIPLY_VALUES) };
+      return { kind: 'multiply', value: rng.pick(multiplyValues(pressureLevel(ctx.troopCount))) };
     case 'weapon':
       return { kind: 'weapon' };
     case 'knight':
