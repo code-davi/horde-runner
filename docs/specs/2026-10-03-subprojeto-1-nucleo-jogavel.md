@@ -137,7 +137,8 @@ O caminho rola a 120 px/s no trecho 1, crescendo 2% por trecho até +50% (alcan�
 - Rótulos de portão que não cabem na largura do portão são reduzidos até caber.
 
 ### 4.10 Feixe — ADR 0024
-- **Carga:** cada monstro derrotado por **projétil** enche a barra do feixe em `custo ÷ (orçamentoDaHorda × 2)`, onde o orçamento é o da horda do trecho em que o monstro nasceu (`hordeBudget`; no trecho do chefão, `threatBudget`). Ou seja, a barra enche ao derrotar o equivalente a **2 hordas inteiras**, com ritmo parecido do começo ao fim da partida. O valor de carga é calculado no core e viaja no spawn, como a vida.
+- **Carga:** cada monstro derrotado por **projétil** enche a barra do feixe em `custo ÷ (orçamentoDaHorda × 2)`, onde o orçamento é o da horda do trecho em que o monstro nasceu (`hordeBudget`). Ou seja, a barra enche ao derrotar o equivalente a **2 hordas inteiras**, com ritmo parecido do começo ao fim da partida. O valor de carga é calculado no core e viaja no spawn, como a vida.
+- **Chefão não carrega:** durante o encontro com o chefão (do surgimento até a derrota) a barra não carrega: nem o dano no chefão, nem a derrota dele, nem a horda leve que o acompanha. Senão ficaria fácil demais vencer o chefão com feixes seguidos.
 - **Disparo:** automático assim que a barra enche. Enquanto o feixe está ativo, nada carrega a barra (nem tiros, nem o próprio feixe); ela recomeça do zero quando o feixe acaba.
 - **Forma:** uma coluna de **100 px** de largura, centrada na tropa, da tropa até o topo da tela, que dura **1,5 s** e **segue a tropa** (dá para varrer a ponte arrastando).
 - **Efeito:** comuns e fortes que tocam a coluna, acima da linha da tropa, morrem na hora (dão os pontos normais). O **chefão** perde **25% da vida máxima**, uma única vez por feixe, mas o feixe nunca o deixa com menos de 1 de vida: o golpe final é sempre dos tiros. Portões e caixa de arma não são afetados (ADR 0009). Os tiros normais continuam durante o feixe.
