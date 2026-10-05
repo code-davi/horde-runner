@@ -13,6 +13,8 @@ export const PALETTE = {
   /** Laterais da ponte e as bordas que marcam o fim da área jogável (ADR 0022). */
   water: 0x1b4965,
   bridgeEdge: 0xa47148,
+  /** Coluna e barra de carga do feixe (ADR 0024). */
+  beam: 0x7df9ff,
   projectile: 0xfff3b0,
   text: '#ffffff',
 } as const;

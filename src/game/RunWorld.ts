@@ -3,6 +3,7 @@ import { PROJECTILE_POOL_SIZE } from '../core/balance';
 import { createRng } from '../core/rng';
 import { Projectile } from './entities/Projectile';
 import { Squad } from './entities/Squad';
+import { BeamSystem } from './systems/BeamSystem';
 import { BossEncounter, type BossEvents } from './systems/BossEncounter';
 import { ChunkSpawner } from './systems/ChunkSpawner';
 import { CollisionSystem, type CollisionEvents } from './systems/Collisions';
@@ -20,6 +21,7 @@ export type RunEvents = CollisionEvents & PathEvents & BossEvents;
 export class RunWorld {
   readonly squad: Squad;
   readonly spawner: ChunkSpawner;
+  readonly beam: BeamSystem;
   private readonly drag: DragInput;
   private readonly firing: FiringSystem;
   private readonly enemies: EnemySystem;
@@ -42,14 +44,17 @@ export class RunWorld {
       troopCount: () => this.squad.state.count,
     });
     const squad = this.squad;
+    const enemies = this.enemies;
+    this.boss = new BossEncounter(scene, { spawner: this.spawner, projectiles, squad, events });
+    this.beam = new BeamSystem(scene, { enemies, squad, boss: this.boss, events });
     this.collisions = new CollisionSystem(scene, {
       projectiles,
-      enemies: this.enemies,
+      enemies,
       squad,
+      beam: this.beam,
       events,
     });
     this.path = new PathCollisionSystem({ projectiles, spawner: this.spawner, squad, events });
-    this.boss = new BossEncounter(scene, { spawner: this.spawner, projectiles, squad, events });
   }
 
   get scrollSpeed(): number {
@@ -64,5 +69,6 @@ export class RunWorld {
     this.collisions.update();
     this.path.update();
     this.boss.update(deltaMs);
+    this.beam.update(deltaMs);
   }
 }

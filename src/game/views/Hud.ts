@@ -1,22 +1,29 @@
 import type Phaser from 'phaser';
-import { GAME_WIDTH } from '../dimensions';
+import { GAME_HEIGHT, GAME_WIDTH } from '../dimensions';
+import { PALETTE } from './palette';
+import { ProgressBar } from './ProgressBar';
 
 const MARGIN = 24;
 const DEPTH = 100;
 const STYLE = { fontFamily: 'sans-serif', color: '#ffffff', stroke: '#000000', strokeThickness: 6 };
+/** Barra de carga do feixe, no rodapé (abaixo da tropa). */
+const BEAM_BAR = { width: 300, height: 18, y: GAME_HEIGHT - 48 };
 
 export interface HudData {
   readonly heroes: number;
   readonly weaponName: string;
   readonly weaponLevel: number;
   readonly score: number;
+  /** Carga do feixe, de 0 a 1. */
+  readonly beamCharge: number;
 }
 
-/** Placar no topo: heróis (grande), arma e score. Só reescreve textos que mudaram. */
+/** Placar no topo (heróis, arma, score) e barra do feixe no rodapé. Só reescreve textos que mudaram. */
 export class Hud {
   private readonly heroes: Phaser.GameObjects.Text;
   private readonly weapon: Phaser.GameObjects.Text;
   private readonly score: Phaser.GameObjects.Text;
+  private readonly beamBar: ProgressBar;
 
   constructor(scene: Phaser.Scene) {
     this.heroes = scene.add
@@ -29,12 +36,16 @@ export class Hud {
       .text(GAME_WIDTH - MARGIN, MARGIN, '', { ...STYLE, fontSize: '36px' })
       .setOrigin(1, 0)
       .setDepth(DEPTH);
+    this.beamBar = new ProgressBar(scene, { ...BEAM_BAR, color: PALETTE.beam });
+    this.beamBar.setPosition(GAME_WIDTH / 2, BEAM_BAR.y);
+    this.beamBar.setDepth(DEPTH);
   }
 
   update(data: HudData): void {
     setIfChanged(this.heroes, `${data.heroes} heróis`);
     setIfChanged(this.weapon, `${data.weaponName} (nv ${data.weaponLevel})`);
     setIfChanged(this.score, `${data.score}`);
+    this.beamBar.setRatio(data.beamCharge);
   }
 }
 

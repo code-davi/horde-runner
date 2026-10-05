@@ -4,6 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 interface DebugHooks {
   setTroop(count: number, weaponLevel: number): void;
   endRun(): void;
+  fillBeam(): void;
 }
 
 /** Coleta erros de console e exceções não tratadas da página. */
@@ -48,6 +49,21 @@ test('survives a giant troop that exhausts the projectile pool', async ({ page }
   await callHook(page, (hooks) => hooks.setTroop(99_999, 6));
   await page.waitForTimeout(15_000);
 
+  expect(errors).toEqual([]);
+});
+
+test('fires the beam without errors, even when the run ends mid-beam', async ({ page }) => {
+  const errors = collectErrors(page);
+
+  await startRun(page, '?seed=1&debug');
+  await callHook(page, (hooks) => hooks.setTroop(30, 2));
+  await page.waitForTimeout(4000);
+  await callHook(page, (hooks) => hooks.fillBeam());
+  await page.waitForTimeout(2000);
+  await callHook(page, (hooks) => hooks.fillBeam());
+  await callHook(page, (hooks) => hooks.endRun());
+
+  await expect(page.locator('body[data-scene="GameOver"]')).toBeAttached();
   expect(errors).toEqual([]);
 });
 

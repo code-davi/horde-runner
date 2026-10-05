@@ -66,7 +66,13 @@ export class RunScene extends Phaser.Scene {
   private refreshPanels(): void {
     const { count, weaponLevel } = this.world.squad.state;
     const weaponName = weaponStats(weaponLevel).name;
-    this.hud.update({ heroes: count, weaponName, weaponLevel, score: totalScore(this.score) });
+    this.hud.update({
+      heroes: count,
+      weaponName,
+      weaponLevel,
+      score: totalScore(this.score),
+      beamCharge: this.world.beam.chargeRatio,
+    });
     const chunk = this.world.spawner.currentChunk;
     this.debug?.update({
       fps: this.game.loop.actualFps,
@@ -78,11 +84,12 @@ export class RunScene extends Phaser.Scene {
     });
   }
 
-  /** Painel de debug + `window.__horde` (`setTroop`, `endRun`), usados pelo smoke test e para testar à mão. */
+  /** Painel de debug + `window.__horde` (`setTroop`, `endRun`, `fillBeam`), usados pelo smoke test e à mão. */
   private enableDebug(): DebugOverlay {
     const setTroop = (count: number, weaponLevel: number): void =>
       this.world.squad.setState({ count, weaponLevel });
-    Object.assign(window, { __horde: { setTroop, endRun: () => this.finish() } });
+    const fillBeam = (): void => this.world.beam.fill();
+    Object.assign(window, { __horde: { setTroop, endRun: () => this.finish(), fillBeam } });
     return new DebugOverlay(this);
   }
 

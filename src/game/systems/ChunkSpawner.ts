@@ -89,8 +89,8 @@ export class ChunkSpawner {
       const { x, offset } = chunk.crate;
       this.crates.push(new WeaponCrate(this.scene, bridgeX(x), top + offset * CHUNK_LENGTH_PX));
     }
-    for (const { kind, hp, x, offset } of chunk.enemies) {
-      this.enemies.spawn({ kind, hp, x: bridgeX(x), y: top + offset * CHUNK_LENGTH_PX });
+    for (const { x, offset, ...enemy } of chunk.enemies) {
+      this.enemies.spawn({ ...enemy, x: bridgeX(x), y: top + offset * CHUNK_LENGTH_PX });
     }
     if (chunk.bossNumber !== null) {
       this.bossPending = true;

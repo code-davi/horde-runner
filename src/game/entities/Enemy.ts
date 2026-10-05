@@ -5,10 +5,11 @@ import { applyDamage, createHealth, isDepleted, type Health } from '../../core/h
 import type { Poolable } from '../systems/ObjectPool';
 import { styleEnemy } from '../views/EnemyView';
 
-/** Onde e como um monstro nasce: tipo, vida (já com a distância, ADR 0023) e posição na tela. */
+/** Onde e como um monstro nasce: tipo, vida (já com a distância, ADR 0023), carga do feixe e posição. */
 export interface EnemySpawnAt {
   readonly kind: EnemyKind;
   readonly hp: number;
+  readonly charge: number;
   readonly x: number;
   readonly y: number;
 }
@@ -17,14 +18,17 @@ export interface EnemySpawnAt {
 export class Enemy extends Phaser.GameObjects.Arc implements Poolable {
   kind: EnemyKind = 'common';
   health: Health = createHealth(1);
+  /** Quanto da barra do feixe este monstro vale ao ser abatido por projétil. */
+  charge = 0;
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0, enemyDef('common').radius);
   }
 
-  spawn({ kind, hp, x, y }: EnemySpawnAt): void {
+  spawn({ kind, hp, charge, x, y }: EnemySpawnAt): void {
     const { radius } = enemyDef(kind);
     this.kind = kind;
+    this.charge = charge;
     this.health = createHealth(hp);
     styleEnemy(this, kind, radius);
     this.setActive(true).setVisible(true);

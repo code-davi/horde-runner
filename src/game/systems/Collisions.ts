@@ -4,6 +4,7 @@ import { circlesOverlap } from '../../core/geometry';
 import type { Enemy } from '../entities/Enemy';
 import type { Projectile } from '../entities/Projectile';
 import type { Squad } from '../entities/Squad';
+import type { BeamSystem } from './BeamSystem';
 import type { EnemySystem } from './EnemySystem';
 import type { ObjectPool } from './ObjectPool';
 
@@ -17,6 +18,7 @@ interface CollisionDeps {
   readonly projectiles: ObjectPool<Projectile>;
   readonly enemies: EnemySystem;
   readonly squad: Squad;
+  readonly beam: BeamSystem;
   readonly events: CollisionEvents;
 }
 
@@ -48,6 +50,8 @@ export class CollisionSystem {
     if (!projectile.active || !enemy.active) return;
     projectile.kill();
     const at = { x: enemy.x, y: enemy.y };
-    if (enemy.damage(projectile.damage)) this.deps.events.onEnemyKilled(enemy.kind, at);
+    if (!enemy.damage(projectile.damage)) return;
+    this.deps.beam.addKillCharge(enemy.charge);
+    this.deps.events.onEnemyKilled(enemy.kind, at);
   }
 }

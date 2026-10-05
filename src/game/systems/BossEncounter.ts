@@ -37,6 +37,11 @@ export class BossEncounter {
     deps.spawner.onBossChunk = (bossNumber, chunkTop) => this.start(bossNumber, chunkTop);
   }
 
+  /** O chefão vivo, do surgimento até a derrota; `null` fora do encontro. */
+  get activeBoss(): Boss | null {
+    return this.boss;
+  }
+
   update(deltaMs: number): void {
     const boss = this.boss;
     if (!boss) return;
