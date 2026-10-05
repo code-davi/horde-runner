@@ -1,6 +1,6 @@
 # Spec — Subprojeto 1: Núcleo jogável
 
-> **Status:** implementado (aguardando playtest final) · **Data:** 2026-10-03 · **Implementado:** 2026-10-04 · **Revisado:** 2026-10-04 (playtests: ponte e contenção da escala; feixe e perseguição)
+> **Status:** implementado (milestone 1 concluído em 2026-10-04; rebalanceamento pendente antes do subprojeto 2) · **Data:** 2026-10-03 · **Implementado:** 2026-10-04 · **Revisado:** 2026-10-04 (playtests: ponte e contenção da escala; feixe e perseguição)
 > **Visão:** `docs/visao/GDD.md` · **Decisões:** `docs/decisoes/`
 
 ## 1. Objetivo
