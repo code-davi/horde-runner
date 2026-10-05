@@ -1,6 +1,6 @@
 # Spec — Subprojeto 1: Núcleo jogável
 
-> **Status:** implementado (aguardando playtest final) · **Data:** 2026-10-03 · **Implementado:** 2026-10-04
+> **Status:** implementado (aguardando playtest final) · **Data:** 2026-10-03 · **Implementado:** 2026-10-04 · **Revisado:** 2026-10-04 (playtest: ponte e contenção da escala)
 > **Visão:** `docs/visao/GDD.md` · **Decisões:** `docs/decisoes/`
 
 ## 1. Objetivo
@@ -28,9 +28,11 @@ Todos os números abaixo são **valores iniciais** e vivem em `src/core/balance.
 
 ### 4.1 Tropa e níveis de herói
 - Estado: `count` (inteiro ≥ 0).
-- Níveis: Recruta = 1, Cavaleiro = 50, Campeão = 250, Lenda = 1000.
-- **Composição visual** = decomposição gulosa de `count` do maior nível para o menor, recalculada a cada mudança. (Perder 1 herói sem Recrutas soltos simplesmente gera a nova composição — ex.: 50 → 49 Recrutas.)
-- Cada unidade visual dispara projéteis. Dano do projétil = `danoDaArma × valorDoNível × (1 + 0,15 × índiceDoNível)` (Recruta índice 0, Cavaleiro 1, Campeão 2, Lenda 3).
+- Níveis: Recruta = 1, Cavaleiro = 10, Campeão = 250, Lenda = 1000.
+- **Composição visual** = decomposição gulosa de `count` do maior nível para o menor, recalculada a cada mudança. (Perder 1 herói sem Recrutas soltos simplesmente gera a nova composição — ex.: 10 → 9 Recrutas.)
+- Cada unidade visual dispara projéteis. Dano do projétil = `danoDaArma × valorDoNível × (1 + 0,05 × índiceDoNível)` (Recruta índice 0, Cavaleiro 1, Campeão 2, Lenda 3).
+
+*(Cavaleiro e bônus por nível revisados no playtest de 2026-10-04.)*
 - Formação: unidades agrupadas num aglomerado compacto centrado na posição X da tropa; unidades maiores no centro.
 
 ### 4.2 Arma
@@ -41,28 +43,32 @@ Todos os números abaixo são **valores iniciais** e vivem em `src/core/balance.
 | 3 | Besta | 2,25 | 1,5 |
 | 4 | Cajado | 3,4 | 2 |
 | 5 | Canhão | 5 | 2 |
-| 6+ | (Canhão +N) | ×1,5 por nível | 2 |
+| 6+ | (Canhão +N) | ×1,2 por nível | 2 |
 
-Projéteis voam a 700 px/s. *(Revisado após playtest de 2026-10-03: a cadência escalava rápido demais; a progressão das armas vem principalmente do dano.)*
+Projéteis voam a 300 px/s. *(Revisado após playtest de 2026-10-03: a cadência escalava rápido demais; a progressão das armas vem principalmente do dano. Em 2026-10-04: 700 px/s era rápido demais e 200 px/s lento demais; o bônus após o Canhão caiu de ×1,5 para ×1,2 por nível.)*
+
+O pool de projéteis comporta o pior caso (unidades desenhadas × tiros/s × tempo de voo até sair da tela): nenhum tiro é descartado em silêncio.
 
 ### 4.3 Portões
 - `+N` / `-N`: soma/subtrai N. Cada projétil que acerta adiciona +1 ao valor, **até um teto = máx(2 × valor inicial, +10)** (ADR 0021): um `-8` atingido 10 vezes vira `+2` e para em `+10`; um `+45` para em `+90`. O acerto consome o projétil mesmo com o portão no teto.
-- `xN` (N ∈ {2, 3}) / `÷N` (N ∈ {2, 3}, arredonda para baixo): fixos; projéteis passam por eles sem efeito.
+- `xN` (N ∈ {2, 3}; o `x3` só aparece com tropa abaixo de 250, §4.6) / `÷N` (N ∈ {2, 3}, arredonda para baixo): fixos; projéteis passam por eles sem efeito.
 - `Arma +1`: sobe um nível de arma.
-- `+1 Cavaleiro`: soma 50 heróis.
+- `+1 Cavaleiro`: soma exatamente o valor de um Cavaleiro (§4.1; hoje 10 heróis).
 - Passar por um portão aplica o efeito uma vez; `count` nunca fica negativo (mínimo 0 → fim de jogo).
 
 ### 4.4 Caixa de arma
-Aparece no caminho. Sobe a arma +1 se a tropa passar por ela **ou** se receber projéteis suficientes (vida inicial: 20).
+Aparece no caminho. Sobe a arma +1 se a tropa passar por ela **ou** se receber projéteis suficientes (vida inicial: 60).
 
 ### 4.5 Inimigos
-| Tipo | Vida | Velocidade relativa | Heróis removidos ao encostar | Pontos |
+| Tipo | Vida base | Velocidade relativa | Heróis removidos ao encostar | Pontos |
 |---|---|---|---|---|
-| Comum | 6 | 1,0 | 1 | 10 |
-| Forte | 80 | 0,6 | 5 | 50 |
-| Chefão | 800 × (1,6 ^ nº do chefão) | 0,35 | **fim de jogo** | 500 × nº do chefão |
+| Comum | 10 | 1,1 | 2 | 10 |
+| Forte | 100 | 0,7 | 20 | 50 |
+| Chefão | 1000 × (1,6 ^ nº do chefão) | 0,35 | **fim de jogo** | 500 × nº do chefão |
 
-*(Vidas dobradas após playtest de 2026-10-03.)*
+**Vida cresce com a distância (ADR 0023):** comuns e fortes nascem com `vidaBase × (1 + 0,05 × (índiceDoTrecho − 1))` — trecho 10 ≈ ×1,45; trecho 20 ≈ ×1,95; trecho 40 ≈ ×2,95. O chefão mantém só o crescimento próprio (×1,6 por chefão).
+
+*(Vidas dobradas após playtest de 2026-10-03; tabela revisada e crescimento por distância acrescentado após o de 2026-10-04.)*
 
 Comuns e fortes somem ao encostar. Se o encontro remove mais heróis do que a tropa tem, `count` vai a 0.
 
@@ -76,26 +82,30 @@ O caminho é uma sequência de trechos. Um **sorteador ponderado** escolhe o pr�
 | Par clássico | 1 portão bom + 1 ruim lado a lado, + horda | 30 → 15 |
 | Par "menos pior" | 2 ruins, ao menos 1 deles `-N`, + horda | 0 → 12 |
 | Par "melhor dos bons" | 2 bons, + horda | 15 → 8 |
-| Portão solitário | 1 portão em um lado, + horda | 15 → 15 |
+| Portão solitário | 1 portão em um lado, + horda | 2 → 15 |
 | Corredor de obstáculos | 2–4 portões ruins solitários alternando lado, + horda | 0 → 12 |
 | Caixa de arma | caixa no meio da horda | 8 → 8 |
-| Só horda | apenas combate | 20 → 15 |
+| Só horda | apenas combate | 15 → 15 |
 
 **Pressão pela tropa (ADR 0020):** cada trecho é gerado conhecendo a tropa atual. O nível de pressão segue os marcos dos níveis de herói:
 
-| Tropa | Pressão | Chance de inimigo forte | Multiplicador dos pesos punitivos | Orçamento extra da horda |
-|---|---|---|---|---|
-| < 50 | 0 | 25% | ×1 | 0 |
-| 50–249 | 1 | 35% | ×1,5 | 10% da tropa |
-| 250–999 | 2 | 45% | ×2 | 10% da tropa |
-| ≥ 1000 | 3 | 60% | ×3 | 10% da tropa |
+| Tropa | Pressão | Chance de inimigo forte | Multiplicador dos pesos punitivos | Orçamento extra da horda | Peso do `xN` no portão bom | `xN` possíveis |
+|---|---|---|---|---|---|---|
+| < 50 | 0 | 25% | ×1 | 0 | 1 | x2, x3 |
+| 50–249 | 1 | 35% | ×1,5 | 25% da tropa | 1/2 | x2, x3 |
+| 250–999 | 2 | 45% | ×2 | 25% da tropa | 1/3 | x2 |
+| ≥ 1000 | 3 | 60% | ×3 | 25% da tropa | 1/4 | x2 |
 
-**Horda:** cada trecho gasta um **orçamento de ameaça** = `8 + 3 × índiceDoTrecho` + o extra da pressão (custo: comum = 1, forte = 8; fortes só a partir do trecho 5). Os monstros chegam em **2 ou 3 ondas agrupadas** por trecho (não espalhados pelo trecho inteiro).
+**Portão bom (ADR 0023):** o tipo é sorteado com peso 1 para `+N`, `Arma +1` e `+1 Cavaleiro` (este só a partir do trecho 8), e peso `1 ÷ (1 + pressão)` para o `xN`. Com pressão ≥ 2 o multiplicador é sempre `x2`.
+
+**Horda:** cada trecho gasta um **orçamento de ameaça** = `8 + 3 × índiceDoTrecho` + o extra da pressão (custo: comum = 1, forte = 8; fortes a partir do trecho 2). Os monstros chegam em **2 ou 3 ondas agrupadas** por trecho (não espalhados pelo trecho inteiro).
 
 **Valores de portão:**
-- `+N`: N entre 5 e `5 + índice` (só a distância; com tropa grande ele fica relativamente pequeno e quem escala são os multiplicadores).
-- `-N`: N = o maior entre um sorteio em `[3, 3 + índice]` e um sorteio de **10% a 40% da tropa atual** (ex.: com 500 heróis, entre `-50` e `-200`).
+- `+N`: N entre 3 e `3 + índice` (só a distância; com tropa grande ele fica relativamente pequeno e quem escala são os multiplicadores).
+- `-N`: N = o maior entre um sorteio em `[5, 5 + índice]` e um sorteio de **20% a 60% da tropa atual** (ex.: com 500 heróis, entre `-100` e `-300`).
 - `÷N`: N sorteado entre 2 e 3. O par "menos pior" pode combinar, por exemplo, `÷2` × `÷3` ou `-100` × `-20`.
+
+*(Pesos, faixas de portão, fortes a partir do trecho 2 e `-N` de 20%–60% ajustados pelo autor no playtest de 2026-10-04; orçamento extra de 25% e `xN` contido acrescentados no mesmo playtest, ADR 0023.)*
 
 **Chefão:** os trechos de índice múltiplo de 8 (8, 16, 24…) são trechos de chefão (não usam moldes). No trecho do chefão o avanço do caminho para; o chefão desce em direção à tropa acompanhado de uma horda leve. Derrotado, o caminho volta a andar.
 
@@ -107,10 +117,17 @@ O caminho é uma sequência de trechos. Um **sorteador ponderado** escolhe o pr�
 5. Trechos 1–4 só usam "par clássico", "portão solitário" com portão bom, e "só horda".
 
 ### 4.7 Velocidade
-Velocidade de avanço inicial definida em `balance.ts`, crescendo 1% por trecho até +50%.
+O caminho rola a 120 px/s no trecho 1, crescendo 2% por trecho até +50% (alcançado no trecho 26). Os monstros caminham a `50 px/s × velocidadeRelativa`, somados à rolagem. *(Revisado após o playtest de 2026-10-04: o jogo estava lento.)*
 
 ### 4.8 Score e recorde
 `score = metrosPercorridos + pontosDeMonstros + bônusDeChefões`. Recorde salvo localmente (localStorage, atrás da interface `SaveStore`).
+
+### 4.9 Ponte (área jogável) — ADR 0022
+- O caminho é uma **ponte** de 480 px de largura centrada na tela de 720 px (x de 120 a 600). Fora dela, as laterais são desenhadas como água/abismo e nada acontece ali.
+- Duas faixas: esquerda (centro x = 240) e direita (centro x = 480), divididas em x = 360. Cada portão tem 220 px de largura.
+- O centro da tropa fica preso entre x = 150 e x = 570.
+- Monstros nascem entre 10% e 90% da largura da ponte (x de 168 a 552); a caixa de arma, entre 30% e 70%; o chefão, no centro.
+- Rótulos de portão que não cabem na largura do portão são reduzidos até caber.
 
 ## 5. Arquitetura
 

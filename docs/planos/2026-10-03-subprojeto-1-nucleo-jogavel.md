@@ -520,3 +520,35 @@
 - [ ] **Step 4:** Conferir os critérios de aceitação do spec §10 um a um; marcar os cumpridos. O primeiro playtest é do autor: deixar o item desmarcado e registrar no README como jogar no celular.
 - [ ] **Step 5:** Atualizar o status do spec para `implementado (aguardando playtest)`.
 - [ ] **Step 6: Commit** — `test(e2e): completa smoke test, modelo de playtest e status do spec`
+
+---
+
+### Task 15b: Ponte e contenção da escala (playtest 2026-10-04)
+
+> Acrescentado após o playtest de 2026-10-04 (`docs/playtests/2026-10-04.md`). Spec §4.1–4.7 revisados e §4.9 criado; ADRs 0022 e 0023. Linear: DAV-17.
+
+**Files:**
+- Create: `src/core/bridge.ts`, `tests/core/bridge.test.ts`, `src/game/views/BridgeView.ts`
+- Modify: `src/core/balance.ts`, `src/core/enemies.ts`, `src/core/chunks.ts`, `src/core/chunkTemplates.ts`, `src/core/difficulty.ts`, `src/game/systems/ChunkSpawner.ts`, `src/game/systems/EnemySystem.ts`, `src/game/entities/Enemy.ts`, `src/game/views/GateView.ts`, `src/game/RunWorld.ts`, os testes de `tests/core/` afetados e `docs/aprendendo/03-coordenadas-e-escala.md`
+
+**Interfaces:**
+- `balance.ts`: valores do autor no playtest (Cavaleiro 10, bônus 0,05, caixa 60, `-N` 20%–60%, faixas `+N`/`-N`, inimigos, chefão 1000, caminhada 50, fortes a partir do trecho 2, pesos) e mais: `GATE_HIT_INCREMENT = 1`; `WEAPON_EXTRA_LEVEL_MULTIPLIER = 1.2`; `KNIGHT_GATE_VALUE = HERO_TIERS[1].value`; `PROJECTILE_SPEED = 300`; `PROJECTILE_POOL_SIZE = 800`; `BASE_SCROLL_SPEED = 120`; `SPEED_GROWTH_PER_CHUNK = 0.02`; `HORDE_TROOP_SHARE = 0.25`; `ENEMY_HP_GROWTH_PER_CHUNK = 0.05`; `DOUBLE_ONLY_PRESSURE = 2`; `BRIDGE_LEFT_X = 120`; `BRIDGE_WIDTH = 480`; `LANE_CENTER_X = { left: 240, right: 480 }`; `GATE_WIDTH = 220`; `SQUAD_MIN_X = 150`; `SQUAD_MAX_X = 570`.
+- `bridge.ts`: `export function bridgeX(fraction: number): number` — fração [0, 1] da ponte → x da tela.
+- `enemies.ts`: `export function enemyHp(kind: EnemyKind, chunkIndex: number): number`.
+- `chunks.ts`: `EnemySpawn` ganha `readonly hp: number` (`x` passa a ser fração da ponte).
+- `difficulty.ts`: `export function multiplyGateWeight(pressure: Pressure): number`; `export function multiplyValues(pressure: Pressure): readonly number[]`.
+- Game: `EnemySystem.spawn(at: { kind: EnemyKind; hp: number; x: number; y: number }): Enemy | null` e `Enemy.spawn(at)` com a mesma forma; `BridgeView` desenha as laterais; `GateView` reduz o rótulo até caber em `GATE_WIDTH`.
+
+- [ ] **Step 1: Testes que falham** (atualizar os que fixam valores antigos e acrescentar):
+  - troop: portão Cavaleiro soma 10; 237 heróis = 23 Cavaleiros + 7 Recrutas; Cavaleiro causa 10 × 1,05.
+  - gates: `-8` atingido 10× vira `+2` (incremento 1).
+  - weapons: nível 6 = 5 × 1,2; nível 7 = 5 × 1,44.
+  - enemies: comum 10 de vida e remove 2; forte remove 20; `bossHp(1) === 1600`; chefão anda a 0,35 × 50; `enemyHp('common', 1) === 10`, `enemyHp('common', 11) === 15`, `enemyHp('strong', 21) === 200`.
+  - difficulty: `hordeBudget(1, 500) === 136`; `scrollSpeed(1) === 120`, `scrollSpeed(1000) === 180`; `multiplyGateWeight(0..3)` = 1, 1/2, 1/3, 1/4; `multiplyValues(1)` = [2, 3], `multiplyValues(2)` = [2].
+  - templates: `-N` com tropa minúscula segue `[5, 5 + índice]`; com 500 heróis todo `-N` ≤ −100; com 400 heróis nenhum `x3` e `xN` mais raro que com 10 heróis; spawns trazem `hp = enemyHp(kind, índice)`.
+  - bridge: `bridgeX(0) === 120`, `bridgeX(0.5) === 360`, `bridgeX(1) === 600`.
+- [ ] **Step 2:** Rodar → FAIL. **Step 3:** Implementar. **Step 4:** Rodar → PASS.
+- [ ] **Step 5:** Game: spawns e caixa via `bridgeX`; vida do spawn chega ao `Enemy`; `BridgeView` (laterais em cor de água) criada antes dos demais objetos; `GateView` com rótulo que cabe.
+- [ ] **Step 6: Verificar** com `?seed=1&debug`: ponte visível, monstros e portões só sobre ela, tropa não sai da ponte, "+1 Cavaleiro" cabe no portão. `npm run check` e `npm run test:e2e` → PASS.
+- [ ] **Step 7:** Atualizar `docs/aprendendo/03-coordenadas-e-escala.md` (área jogável × tela; frações da ponte) e `docs/playtests/2026-10-04.md`.
+- [ ] **Step 8: Commits** — `fix(core): ...`, `feat(core): ...`, `feat(game): ...` (um por bloco de comportamento).
