@@ -10,6 +10,11 @@ export interface TextLayout {
   readonly size: number;
 }
 
+/** Escala que faz um conteúdo de `width` px caber em `maxWidth` px, sem nunca ampliar. */
+export function fitScale(width: number, maxWidth: number): number {
+  return Math.min(1, maxWidth / width);
+}
+
 /** Texto centralizado no ponto (x, y), no estilo padrão do jogo. */
 export function centeredText(
   scene: Phaser.Scene,

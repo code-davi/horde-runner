@@ -1,9 +1,10 @@
 import type Phaser from 'phaser';
 import { CHUNK_LENGTH_PX, OFFSCREEN_MARGIN_PX } from '../../core/balance';
+import { bridgeX } from '../../core/bridge';
 import { ChunkGenerator, GATE_ROWS, type Chunk } from '../../core/chunks';
 import { scrollSpeed } from '../../core/difficulty';
 import type { Rng } from '../../core/rng';
-import { GAME_HEIGHT, GAME_WIDTH } from '../dimensions';
+import { GAME_HEIGHT } from '../dimensions';
 import { GateRow } from '../entities/GateRow';
 import { WeaponCrate } from '../entities/WeaponCrate';
 import { advanceFrontier, shouldGenerateChunk } from './chunkTiming';
@@ -86,10 +87,10 @@ export class ChunkSpawner {
     this.placeGates(chunk, top);
     if (chunk.crate) {
       const { x, offset } = chunk.crate;
-      this.crates.push(new WeaponCrate(this.scene, x * GAME_WIDTH, top + offset * CHUNK_LENGTH_PX));
+      this.crates.push(new WeaponCrate(this.scene, bridgeX(x), top + offset * CHUNK_LENGTH_PX));
     }
     for (const { kind, hp, x, offset } of chunk.enemies) {
-      this.enemies.spawn({ kind, hp, x: x * GAME_WIDTH, y: top + offset * CHUNK_LENGTH_PX });
+      this.enemies.spawn({ kind, hp, x: bridgeX(x), y: top + offset * CHUNK_LENGTH_PX });
     }
     if (chunk.bossNumber !== null) {
       this.bossPending = true;

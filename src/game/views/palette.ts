@@ -10,6 +10,9 @@ export const PALETTE = {
   goodGate: 0x2dc653,
   badGate: 0xd62828,
   crate: 0xf4a261,
+  /** Laterais da ponte e as bordas que marcam o fim da área jogável (ADR 0022). */
+  water: 0x1b4965,
+  bridgeEdge: 0xa47148,
   projectile: 0xfff3b0,
   text: '#ffffff',
 } as const;

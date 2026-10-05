@@ -49,22 +49,33 @@ export function subtractGateRange(chunkIndex: number): [number, number] {
   return [5, 5 + chunkIndex];
 }
 
-/** Coordenada x que divide a faixa esquerda da direita. */
+/** Meio da tela lógica (720 px): divide a faixa esquerda da direita e centraliza a ponte. */
 export const LANE_SPLIT_X = 360;
-/** Centro horizontal de cada faixa. */
-export const LANE_CENTER_X = { left: 180, right: 540 } as const;
+/** Largura da ponte, a área jogável (ADR 0022); as demais medidas do caminho derivam dela. */
+export const BRIDGE_WIDTH = 480;
+export const BRIDGE_LEFT_X = LANE_SPLIT_X - BRIDGE_WIDTH / 2;
+export const BRIDGE_RIGHT_X = LANE_SPLIT_X + BRIDGE_WIDTH / 2;
+/** Centro horizontal de cada faixa: o meio de cada metade da ponte. */
+export const LANE_CENTER_X = {
+  left: LANE_SPLIT_X - BRIDGE_WIDTH / 4,
+  right: LANE_SPLIT_X + BRIDGE_WIDTH / 4,
+} as const;
+/** Folga entre os dois portões de uma fileira, em px. */
+const GATE_GAP = 20;
 
 /** Comprimento de um trecho do caminho, em px. */
 export const CHUNK_LENGTH_PX = 1200;
-export const GATE_WIDTH = 330;
+export const GATE_WIDTH = BRIDGE_WIDTH / 2 - GATE_GAP;
 export const GATE_HEIGHT = 70;
 export const CRATE_SIZE = 70;
 
 /** Linha (y) onde a tropa fica na tela. */
 export const SQUAD_Y = 1100;
-/** Limites horizontais do centro da tropa. */
-export const SQUAD_MIN_X = 80;
-export const SQUAD_MAX_X = 640;
+/** Distância mínima entre o centro da tropa e a borda da ponte, em px. */
+const SQUAD_EDGE_MARGIN = 30;
+/** Limites horizontais do centro da tropa: sempre sobre a ponte. */
+export const SQUAD_MIN_X = BRIDGE_LEFT_X + SQUAD_EDGE_MARGIN;
+export const SQUAD_MAX_X = BRIDGE_RIGHT_X - SQUAD_EDGE_MARGIN;
 /** Velocidade máxima com que a tropa segue o dedo, em px/s. */
 export const SQUAD_FOLLOW_SPEED = 2200;
 

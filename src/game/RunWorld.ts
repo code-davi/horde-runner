@@ -11,6 +11,7 @@ import { EnemySystem } from './systems/EnemySystem';
 import { FiringSystem } from './systems/FiringSystem';
 import { ObjectPool } from './systems/ObjectPool';
 import { PathCollisionSystem, type PathEvents } from './systems/PathCollisions';
+import { drawBridge } from './views/BridgeView';
 
 /** Tudo que acontece no mundo e que a cena precisa saber. */
 export type RunEvents = CollisionEvents & PathEvents & BossEvents;
@@ -27,6 +28,7 @@ export class RunWorld {
   private readonly boss: BossEncounter;
 
   constructor(scene: Phaser.Scene, seed: number, events: RunEvents) {
+    drawBridge(scene); // primeiro: fica atrás de todo o resto
     this.squad = new Squad(scene);
     this.drag = new DragInput(scene, this.squad.x);
     const projectiles = new ObjectPool(scene, {

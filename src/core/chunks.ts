@@ -27,7 +27,7 @@ export interface GatePlacement {
   readonly gate: Gate;
 }
 
-/** `x` em [0.1, 0.9] da largura; `offset` em [0, 1) do comprimento do trecho; `hp` já com a distância. */
+/** `x` em [0.1, 0.9] da largura da ponte; `offset` em [0, 1) do comprimento do trecho; `hp` já com a distância. */
 export interface EnemySpawn {
   readonly kind: EnemyKind;
   readonly hp: number;
@@ -39,6 +39,7 @@ export interface Chunk {
   readonly index: number;
   readonly template: TemplateKind | 'boss';
   readonly gates: readonly GatePlacement[];
+  /** `x` é fração da largura da ponte, como nos spawns. */
   readonly crate: { readonly x: number; readonly offset: number } | null;
   readonly enemies: readonly EnemySpawn[];
   readonly bossNumber: number | null;
