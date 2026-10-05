@@ -35,10 +35,14 @@ describe('addCharge', () => {
     expect(state).toMatchObject({ charge: 0, remainingMs: 1500 });
   });
 
-  it('fires after 40 common kills despite floating point error', () => {
+  it('fires after two whole hordes even when the float sum lands just below 1', () => {
+    // Uma horda de orçamento 23 (trecho 2) abatida duas vezes: 46 × 1/46 soma 0,9999999999999994.
+    const perKill = killCharge('common', 23);
+    const rawSum = Array.from({ length: 46 }, () => perKill).reduce((sum, value) => sum + value, 0);
     let state = initialBeam;
-    for (let kill = 0; kill < 40; kill++) state = addCharge(state, killCharge('common', 20), false);
+    for (let kill = 0; kill < 46; kill++) state = addCharge(state, perKill, false);
 
+    expect(rawSum).toBeLessThan(1);
     expect(isBeamActive(state)).toBe(true);
   });
 
@@ -70,6 +74,11 @@ describe('beamCovers', () => {
   it('hits targets touching the 100 px column above the troop', () => {
     expect(beamCovers(300, { x: 350, y: 500, radius: 10 })).toBe(true);
     expect(beamCovers(300, { x: 361, y: 500, radius: 10 })).toBe(false);
+  });
+
+  it('stops at the top of the screen (review: it reached ~1400 px above it)', () => {
+    expect(beamCovers(300, { x: 300, y: -50, radius: 10 })).toBe(false);
+    expect(beamCovers(300, { x: 300, y: -5, radius: 10 })).toBe(true);
   });
 
   it('ignores targets that already reached the troop line', () => {
