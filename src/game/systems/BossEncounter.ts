@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import { BOSS_ARENA_Y } from '../../core/balance';
+import { bossReachedTroop } from '../../core/enemies';
 import { circlesOverlap } from '../../core/geometry';
 import { GAME_WIDTH } from '../dimensions';
 import { Boss } from '../entities/Boss';
@@ -23,7 +24,7 @@ interface BossDeps {
 
 /**
  * Ciclo de vida do chefão: nasce no trecho de chefão, para o caminho ao chegar na arena,
- * recebe tiros, e ao morrer devolve o caminho. Se encostar na tropa, é fim de jogo.
+ * recebe tiros, e ao morrer devolve o caminho. Se encostar na tropa ou alcançar a linha dela, é fim de jogo.
  */
 export class BossEncounter {
   private readonly scene: Phaser.Scene;
@@ -40,10 +41,12 @@ export class BossEncounter {
     const boss = this.boss;
     if (!boss) return;
     const { spawner, squad, events } = this.deps;
-    boss.update(deltaMs, spawner.scrollSpeed);
+    boss.update(deltaMs, spawner.scrollSpeed, squad.x);
     if (!spawner.isBossActive && boss.y >= BOSS_ARENA_Y) spawner.startBoss();
     if (this.takeShots(boss)) return;
-    if (circlesOverlap(squad.circle, boss.circle)) events.onBossReachedSquad();
+    if (circlesOverlap(squad.circle, boss.circle) || bossReachedTroop(boss.y)) {
+      events.onBossReachedSquad();
+    }
   }
 
   private start(bossNumber: number, chunkTop: number): void {

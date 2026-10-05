@@ -2,6 +2,7 @@ import type Phaser from 'phaser';
 import { BOSS } from '../../core/balance';
 import { bossHp, bossWalkSpeed } from '../../core/enemies';
 import type { Circle } from '../../core/geometry';
+import { chaseVelocityX } from '../../core/motion';
 import { applyDamage, createHealth, healthRatio, isDepleted, type Health } from '../../core/health';
 import { BossView } from '../views/BossView';
 
@@ -11,7 +12,7 @@ import { BossView } from '../views/BossView';
  */
 export class Boss {
   readonly bossNumber: number;
-  readonly x: number;
+  x: number;
   y: number;
   health: Health;
   private readonly view: BossView;
@@ -36,8 +37,9 @@ export class Boss {
     return isDepleted(this.health);
   }
 
-  /** Desce com o caminho (enquanto ele rola) mais a própria caminhada. */
-  update(deltaMs: number, scrollSpeed: number): void {
+  /** Desce com o caminho (enquanto ele rola) mais a própria caminhada e persegue `targetX` (ADR 0025). */
+  update(deltaMs: number, scrollSpeed: number, targetX: number): void {
+    this.x += (chaseVelocityX(this, targetX, BOSS.steer) * deltaMs) / 1000;
     this.y += ((scrollSpeed + bossWalkSpeed()) * deltaMs) / 1000;
     this.render();
   }
