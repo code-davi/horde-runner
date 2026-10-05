@@ -14,8 +14,9 @@ describe('weaponStats', () => {
     expect(weaponStats(5).damage).toBe(5);
   });
 
-  it('levels above 5 keep the cannon and multiply damage by 1.5 each', () => {
-    expect(weaponStats(6)).toEqual({ name: 'Canhão +1', damage: 7.5, shotsPerSecond: 2 });
-    expect(weaponStats(7).damage).toBe(11.25);
+  it('levels above 5 keep the cannon and add 20% damage each', () => {
+    expect(weaponStats(6)).toMatchObject({ name: 'Canhão +1', shotsPerSecond: 2 });
+    expect(weaponStats(6).damage).toBeCloseTo(6);
+    expect(weaponStats(7).damage).toBeCloseTo(7.2);
   });
 });

@@ -18,20 +18,22 @@ function gatesFrom(
 }
 
 describe('negative gates scale with the troop', () => {
-  it('with 500 heroes every -N removes at least 10% of the troop', () => {
+  it('with 500 heroes every -N removes at least 20% of the troop', () => {
     const negatives = gatesFrom('obstacleCorridor', 500, 300).filter(
       (gate) => gate.kind === 'sum' && gate.value < 0,
     );
 
     expect(negatives.length).toBeGreaterThan(0);
-    negatives.forEach((gate) => expect(gate.kind === 'sum' && gate.value).toBeLessThanOrEqual(-50));
+    negatives.forEach((gate) =>
+      expect(gate.kind === 'sum' && gate.value).toBeLessThanOrEqual(-100),
+    );
   });
 
   it('with a tiny troop -N still follows the distance range', () => {
     const negatives = gatesFrom('obstacleCorridor', 2, 300).filter((gate) => gate.kind === 'sum');
 
     negatives.forEach((gate) =>
-      expect(gate.kind === 'sum' && gate.value).toBeGreaterThanOrEqual(-13),
+      expect(gate.kind === 'sum' && gate.value).toBeGreaterThanOrEqual(-15),
     );
   });
 

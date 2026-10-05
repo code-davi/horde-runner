@@ -53,8 +53,8 @@ describe('applyGate', () => {
     expect(applyGate(troop(4), { kind: 'weapon' })).toEqual({ count: 4, weaponLevel: 2 });
   });
 
-  it('knight gate adds 50 heroes', () => {
-    expect(applyGate(troop(3), { kind: 'knight' }).count).toBe(53);
+  it('knight gate adds exactly one knight worth of heroes (10)', () => {
+    expect(applyGate(troop(3), { kind: 'knight' }).count).toBe(13);
   });
 });
 
@@ -69,12 +69,12 @@ describe('takeHit and upgradeWeapon', () => {
 });
 
 describe('renderUnits', () => {
-  it('shows 237 heroes as 4 knights followed by 37 recruits', () => {
+  it('shows 237 heroes as 23 knights followed by 7 recruits', () => {
     const units = renderUnits(237);
 
     expect(units).toEqual([
-      ...Array.from({ length: 4 }, () => ({ tierIndex: 1, weight: 1 })),
-      ...Array.from({ length: 37 }, () => ({ tierIndex: 0, weight: 1 })),
+      ...Array.from({ length: 23 }, () => ({ tierIndex: 1, weight: 1 })),
+      ...Array.from({ length: 7 }, () => ({ tierIndex: 0, weight: 1 })),
     ]);
   });
 
@@ -82,10 +82,10 @@ describe('renderUnits', () => {
     expect(renderUnits(0)).toEqual([]);
   });
 
-  it('caps a giant troop at 120 units without losing heroes', () => {
+  it('caps a giant troop at 100 units without losing heroes', () => {
     const units = renderUnits(2_000_000);
 
-    expect(units.length).toBeLessThanOrEqual(120);
+    expect(units.length).toBeLessThanOrEqual(100);
     expect(representedHeroes(units)).toBe(2_000_000);
   });
 
@@ -101,11 +101,11 @@ describe('unitShotDamage', () => {
     expect(unitShotDamage(1, { tierIndex: 0, weight: 1 })).toBe(1);
   });
 
-  it('a knight deals 50 recruits worth plus a 15% bonus', () => {
-    expect(unitShotDamage(1, { tierIndex: 1, weight: 1 })).toBeCloseTo(57.5);
+  it('a knight deals 10 recruits worth plus a 5% bonus', () => {
+    expect(unitShotDamage(1, { tierIndex: 1, weight: 1 })).toBeCloseTo(10.5);
   });
 
   it('scales with weapon damage and unit weight', () => {
-    expect(unitShotDamage(2, { tierIndex: 1, weight: 2 })).toBeCloseTo(1.5 * 50 * 1.15 * 2);
+    expect(unitShotDamage(2, { tierIndex: 1, weight: 2 })).toBeCloseTo(1.5 * 10 * 1.05 * 2);
   });
 });

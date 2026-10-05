@@ -86,11 +86,15 @@ describe('hordeBudget', () => {
 });
 
 describe('scrollSpeed', () => {
-  it('starts at the base speed', () => {
-    expect(scrollSpeed(1)).toBe(100);
+  it('starts at 120 px/s', () => {
+    expect(scrollSpeed(1)).toBe(120);
+  });
+
+  it('grows 2% per chunk', () => {
+    expect(scrollSpeed(11)).toBeCloseTo(144);
   });
 
   it('caps at +50%', () => {
-    expect(scrollSpeed(1000)).toBe(150);
+    expect(scrollSpeed(1000)).toBe(180);
   });
 });
