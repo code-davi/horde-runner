@@ -20,11 +20,21 @@ Existem milhares de tamanhos de tela. Se o código usasse pixels reais, cada pos
 
 A diferença em relação ao CSS é que não existe "layout responsivo": o jogo inteiro escala como uma imagem.
 
+## Área jogável não é a tela inteira: a ponte
+
+A tela lógica tem 720 px de largura, mas o jogo só acontece numa **ponte** de 480 px no meio dela (x de 120 a 600, ADR 0022). As laterais são cenário. Estreitar o caminho deixa as hordas mais densas e tira a rota de fuga pelas bordas.
+
+Para que a largura da ponte seja **um número só**, o gerador de trechos não fala em pixels: ele sorteia posições como **frações da ponte** (`x = 0,1` é perto da borda esquerda, `x = 0,9` perto da direita). Só na hora de pôr o monstro no mundo a fração vira pixel, com `bridgeX(fração) = 120 + fração × 480`. Se a ponte mudar de largura, o gerador nem fica sabendo.
+
+**Analogia web:** é como posicionar com porcentagem dentro de um container (`left: 10%`) em vez de `left: 48px`. O container (a ponte) pode mudar de tamanho que os filhos continuam no lugar relativo certo. As faixas, os portões e os limites da tropa também derivam de `BRIDGE_WIDTH`, como variáveis CSS calculadas com `calc()`.
+
 ## Onde está no código
 
 - `src/game/dimensions.ts`: `GAME_WIDTH = 720` e `GAME_HEIGHT = 1280`
 - `src/game/config.ts`: `scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }`
-- `src/core/balance.ts`: `LANE_SPLIT_X = 360` (meio da largura) e, a partir do Task 9, `SQUAD_Y`
+- `src/core/balance.ts`: `LANE_SPLIT_X = 360` (meio da largura), a partir do Task 9 `SQUAD_Y` e, a partir do Task 15b, `BRIDGE_WIDTH` e as medidas que derivam dela (faixas, portões, limites da tropa)
+- `src/core/bridge.ts`: `bridgeX`, que converte fração da ponte em x da tela
+- `src/game/views/BridgeView.ts`: desenha a água e as bordas da ponte
 - `index.html`: o `<div id="game">` onde o canvas é colocado, e o CSS `touch-action: none`, que impede o navegador de rolar a página quando você arrasta o dedo no jogo
 
 ## Mexa e veja
@@ -32,3 +42,4 @@ A diferença em relação ao CSS é que não existe "layout responsivo": o jogo 
 1. Abra o jogo no navegador, aperte F12 e ative o modo de dispositivo (ícone de celular). Troque entre aparelhos e veja o jogo escalar mantendo a proporção.
 2. Em `config.ts`, troque `Phaser.Scale.FIT` por `Phaser.Scale.ENVELOP`. O jogo passa a preencher a tela toda, mas corta as bordas. Desfaça.
 3. Em `StartScene`, mude o `y` do título de `GAME_HEIGHT * 0.35` para `0`. O texto fica cortado no topo, porque a origem é o canto superior e o texto é centralizado no ponto.
+4. Em `balance.ts`, troque `BRIDGE_WIDTH` de 480 para 360 e jogue: portões, faixas, monstros e limites da tropa se ajustam sozinhos, e desviar fica bem mais difícil. Desfaça.
