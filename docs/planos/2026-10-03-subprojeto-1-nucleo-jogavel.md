@@ -552,3 +552,96 @@
 - [ ] **Step 6: Verificar** com `?seed=1&debug`: ponte visível, monstros e portões só sobre ela, tropa não sai da ponte, "+1 Cavaleiro" cabe no portão. `npm run check` e `npm run test:e2e` → PASS.
 - [ ] **Step 7:** Atualizar `docs/aprendendo/03-coordenadas-e-escala.md` (área jogável × tela; frações da ponte) e `docs/playtests/2026-10-04.md`.
 - [ ] **Step 8: Commits** — `fix(core): ...`, `feat(core): ...`, `feat(game): ...` (um por bloco de comportamento).
+
+---
+
+> **Tasks 15c e 15d** — terceira rodada do playtest de 2026-10-04 (`docs/playtests/2026-10-04.md`): o jogo era de desviar, não de enfrentar. Spec §4.2, §4.5, §4.6, §4.9 e §4.10; ADRs 0024 e 0025. Linear: DAV-18 (15c) e DAV-19 (15d).
+>
+> **Review Focus (15c + 15d):**
+>
+> 1. Carga somada em frações (ex.: 40 × 1/40) precisa disparar o feixe mesmo com erro de ponto flutuante — teste no 15d.
+> 2. O feixe nunca derrota o chefão, mesmo com o chefão quase morto — teste de `beamBossDamage` no 15d.
+> 3. Monstros perseguindo a tropa na borda não saem da ponte: o alvo é `squad.x`, já preso em 180–540 — garantido pela construção; conferir no navegador.
+> 4. Chefão desviado não trava mais a partida: alcançar `SQUAD_Y` encerra — teste de `bossReachedTroop` no 15c e verificação no navegador.
+> 5. Feixe ativo quando a partida acaba (tropa zerada ou chefão) não gera erro — smoke test do 15d.
+
+### Task 15c: Hordas densas, perseguição e chefão que alcança a tropa
+
+**Files:**
+
+- Modify: `src/core/balance.ts`, `src/core/enemies.ts`, `src/core/motion.ts`, `src/core/chunkTemplates.ts`, `src/game/entities/Enemy.ts`, `src/game/systems/EnemySystem.ts`, `src/game/entities/Boss.ts`, `src/game/systems/BossEncounter.ts`, `src/game/RunWorld.ts`
+- Test: `tests/core/bridge.test.ts`, `tests/core/difficulty.test.ts`, `tests/core/enemies.test.ts`, `tests/core/motion.test.ts`, `tests/core/chunkTemplates.test.ts`
+- Create: `docs/aprendendo/13-perseguicao.md`
+
+**Interfaces:**
+
+- `balance.ts`: `BRIDGE_WIDTH = 420`; `ENEMY_SPAWN_X_RANGE = [0.05, 0.95] as const`; `threatBudget(i) = 13 + 5 × i`; `PROJECTILE_SPEED = 450`; `ENEMIES.common.radius = 10`; nova coluna `steer` (px/s laterais): comum 30, forte 45; `BOSS.steer = 20`; `CHASE_DEADZONE_PX = 2`.
+- `enemies.ts`: `EnemyDef` ganha `readonly steer: number`; `export function bossReachedTroop(bossY: number): boolean` (`bossY >= SQUAD_Y`).
+- `motion.ts`: `export function chaseVelocityX(chaser: { x: number; y: number }, targetX: number, steer: number): number` — `0` se `y < 0`, `y >= SQUAD_Y` ou `|targetX − x| <= CHASE_DEADZONE_PX`; senão `sign(targetX − x) × steer`.
+- Game: `Enemy.move(vx: number, vy: number): void` substitui `setFallSpeed`; `EnemySystem.update(scrollSpeed: number, targetX: number)`; `Boss.x` passa a mudar e `Boss.update(deltaMs, scrollSpeed, targetX)`; `BossEncounter` chama `onBossReachedSquad()` quando `bossReachedTroop(boss.y)`.
+
+- [ ] **Step 1: Testes que falham**
+  - bridge: `bridgeX(0) === 150`, `bridgeX(0.5) === 360`, `bridgeX(1) === 570`; `BRIDGE_LEFT_X === 150`, `BRIDGE_RIGHT_X === 570` (os invariantes de portões e tropa continuam valendo).
+  - difficulty: `hordeBudget(1, 10) === 18`; `hordeBudget(1, 500) === 143`.
+  - enemies: `enemyDef('common')` tem `radius: 10` e `steer: 30`; `enemyDef('strong').steer === 45`; `bossReachedTroop(1099) === false`, `bossReachedTroop(1100) === true`.
+  - motion: `chaseVelocityX({ x: 200, y: 500 }, 300, 30) === 30`; `({ x: 300, y: 500 }, 200, 30) === -30`; `y = -10` → `0`; `y = 1100` → `0`; `({ x: 299, y: 500 }, 300, 30) === 0`.
+  - chunkTemplates: em 200 hordas, todo `x` ∈ [0.05, 0.95] e existe algum `x < 0.1` e algum `x > 0.9`.
+- [ ] **Step 2:** `npx vitest run tests/core` → FAIL (valores antigos; `chaseVelocityX` e `bossReachedTroop` não existem).
+- [ ] **Step 3:** Implementar o core conforme as Interfaces. **Step 4:** `npx vitest run` → PASS.
+- [ ] **Step 5:** Game: `EnemySystem.update` move cada monstro com `chaseVelocityX(enemy, targetX, enemyDef(kind).steer)` e a queda de hoje; `Boss` soma `chaseVelocityX(boss, targetX, BOSS.steer) × dt` ao `x`; `RunWorld` passa `squad.x`; `BossEncounter` encerra ao `bossReachedTroop`.
+- [ ] **Step 6: Verificar** com `?seed=1&debug`: comuns pequenos, hordas densas, monstros convergindo para a tropa; no trecho 8, ficar na borda faz o chefão vir atrás e, se ele alcançar a linha, a partida acaba. `npm run check` e `npm run test:e2e` → PASS.
+- [ ] **Step 7:** Escrever `13-perseguicao.md` (comportamento "seek" de steering; analogia: um elemento que persegue o cursor com velocidade limitada; onde está; mexa e veja: `steer`).
+- [ ] **Step 8: Commits** — `feat(core): monstros perseguem a tropa e hordas ficam mais densas`; `fix(game): chefão que alcança a tropa encerra a partida`; `docs(aprendendo): perseguição`.
+
+### Task 15d: Feixe carregado por abates
+
+**Files:**
+
+- Create: `src/core/beam.ts`, `tests/core/beam.test.ts`, `src/game/systems/BeamSystem.ts`, `src/game/views/BeamView.ts`, `docs/aprendendo/12-medidor-e-habilidade-especial.md`
+- Modify: `src/core/balance.ts`, `src/core/chunks.ts`, `src/core/chunkTemplates.ts`, `src/game/entities/Enemy.ts`, `src/game/systems/Collisions.ts`, `src/game/systems/BossEncounter.ts`, `src/game/views/Hud.ts`, `src/game/views/palette.ts`, `src/game/RunWorld.ts`, `src/game/scenes/RunScene.ts`, `tests/core/chunkTemplates.test.ts`, `tests/e2e/smoke.spec.ts`
+
+**Interfaces:**
+
+- `balance.ts`: `BEAM = { hordesToCharge: 2, widthPx: 100, durationMs: 1500, bossDamageShare: 0.25 } as const`.
+- `beam.ts`:
+  ```ts
+  export interface BeamState { readonly charge: number; readonly remainingMs: number; readonly bossHit: boolean }
+  export const initialBeam: BeamState; // { charge: 0, remainingMs: 0, bossHit: false }
+  export function killCharge(kind: EnemyKind, hordeBudget: number): number; // custo ÷ (orçamento × hordesToCharge)
+  export function addCharge(state: BeamState, amount: number, bossPresent: boolean): BeamState; // ignora se ativo ou com chefão; ao chegar a 1 (tolerância 1e-9) dispara: { charge: 0, remainingMs: durationMs, bossHit: false }
+  export function tickBeam(state: BeamState, deltaMs: number): BeamState; // remainingMs nunca negativo
+  export function isBeamActive(state: BeamState): boolean;
+  export function beamCovers(beamX: number, target: Circle): boolean; // |dx| < widthPx/2 + radius e target.y < SQUAD_Y
+  export function beamBossDamage(health: Health): number; // min(maxHp × bossDamageShare, hp − 1), nunca negativo
+  export function markBossHit(state: BeamState): BeamState;
+  ```
+- `chunks.ts`: `EnemySpawn` ganha `readonly charge: number`; `fillHorde` usa `killCharge(kind, hordeBudget(índice, tropa))`; `bossHorde` usa `charge: 0`.
+- Game: `EnemySpawnAt` e `Enemy` ganham `charge`; `BossEncounter` expõe `get activeBoss(): Boss | null`;
+  ```ts
+  export class BeamSystem {
+    constructor(scene: Phaser.Scene, deps: { enemies: EnemySystem; squad: Squad; boss: BossEncounter; events: CollisionEvents });
+    get chargeRatio(): number;
+    addKillCharge(amount: number): void; // bossPresent = boss.activeBoss !== null
+    fill(): void; // debug: addCharge(estado, 1, false)
+    update(deltaMs: number): void; // tick; ativo: BeamView em squad.x, mata (kill + onEnemyKilled) quem beamCovers, dano único no chefão
+  }
+  export class BeamView { constructor(scene: Phaser.Scene); show(x: number): void; hide(): void } // coluna de y 0 a SQUAD_Y, PALETTE.beam, alpha 0.6
+  ```
+  `CollisionSystem` recebe `beam` nas deps e chama `beam.addKillCharge(enemy.charge)` quando um projétil mata. `HudData` ganha `beamCharge: number` (barra `ProgressBar` no rodapé, cor `PALETTE.beam`). `RunWorld` expõe `readonly beam`; ordem de criação: inimigos → spawner → chefão → feixe → colisões. Debug: `__horde.fillBeam()`.
+
+- [ ] **Step 1: Testes que falham** (`beam.test.ts`):
+  - `killCharge('common', 20) === 1 / 40`; `killCharge('strong', 20) === 8 / 40`.
+  - 40 × `addCharge(·, killCharge('common', 20), false)` a partir de `initialBeam` deixa o feixe ativo (tolerância de ponto flutuante).
+  - `addCharge(initialBeam, 0.4, false)` → `charge 0.4`, inativo; `addCharge({ ...initialBeam, charge: 0.9 }, 0.2, false)` → ativo, `remainingMs 1500`, `charge 0`.
+  - carga ignorada com feixe ativo e com `bossPresent = true`.
+  - `tickBeam`: ativo após 1499 ms, inativo após 1500 ms, `remainingMs` nunca negativo.
+  - `beamCovers(300, { x: 350, y: 500, radius: 10 }) === true`; `x: 361` → `false`; `y: 1100` → `false`.
+  - `beamBossDamage({ hp: 1000, maxHp: 1000 }) === 250`; `({ hp: 100, maxHp: 1000 }) === 99`; `({ hp: 1, maxHp: 1000 }) === 0`.
+  - `markBossHit` liga `bossHit`; um novo disparo volta `bossHit` para `false`.
+  - chunkTemplates: spawns de `fillHorde` trazem `charge === killCharge(kind, hordeBudget(12, 300))`; `bossHorde` traz `charge 0`.
+- [ ] **Step 2:** `npx vitest run tests/core` → FAIL (`beam.ts` não existe; spawns sem `charge`).
+- [ ] **Step 3:** Implementar `beam.ts`, `BEAM` e a carga nos spawns. **Step 4:** `npx vitest run` → PASS.
+- [ ] **Step 5:** Game: `BeamView`, `BeamSystem`, carga em `Collisions`, `activeBoss`, barra no `Hud`, `fillBeam` no debug. Smoke test novo: `?seed=1&debug`, `setTroop(30, 2)`, `fillBeam()`, 3 s sem erros; e `fillBeam()` seguido de `endRun()` sem erros.
+- [ ] **Step 6: Verificar** com `?seed=1&debug`: abater monstros enche a barra; cheia, a coluna aparece por 1,5 s, segue a tropa e limpa a horda; no chefão, a barra não enche e um feixe tira 25% sem matar. `npm run check` e `npm run test:e2e` → PASS.
+- [ ] **Step 7:** Escrever `12-medidor-e-habilidade-especial.md` (o que é um medidor de habilidade; por que medir em hordas; analogia: _token bucket_ de rate limiting; onde está; mexa e veja: `BEAM`).
+- [ ] **Step 8: Commits** — `feat(core): carga e regras do feixe`; `feat(game): feixe que limpa uma coluna à frente da tropa`; `docs(aprendendo): medidor e habilidade especial`.
