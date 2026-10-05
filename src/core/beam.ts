@@ -38,9 +38,11 @@ export function tickBeam(state: BeamState, deltaMs: number): BeamState {
   return { ...state, remainingMs: Math.max(0, state.remainingMs - deltaMs) };
 }
 
-/** Se o alvo toca a coluna do feixe centrada em `beamX`, acima da linha da tropa. */
+/** Se o alvo toca a coluna do feixe centrada em `beamX`: da linha da tropa até o topo da tela. */
 export function beamCovers(beamX: number, target: Circle): boolean {
-  return Math.abs(target.x - beamX) < BEAM.widthPx / 2 + target.radius && target.y < SQUAD_Y;
+  const inColumn = Math.abs(target.x - beamX) < BEAM.widthPx / 2 + target.radius;
+  const onScreen = target.y + target.radius > 0;
+  return inColumn && onScreen && target.y < SQUAD_Y;
 }
 
 /** Dano do feixe no chefão: uma fração da vida máxima, sem nunca derrotá-lo. */
