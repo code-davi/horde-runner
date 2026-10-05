@@ -1,6 +1,6 @@
 # Spec — Subprojeto 1: Núcleo jogável
 
-> **Status:** implementado (aguardando playtest final) · **Data:** 2026-10-03 · **Implementado:** 2026-10-04 · **Revisado:** 2026-10-04 (playtest: ponte e contenção da escala)
+> **Status:** implementado (aguardando playtest final) · **Data:** 2026-10-03 · **Implementado:** 2026-10-04 · **Revisado:** 2026-10-04 (playtests: ponte e contenção da escala; feixe e perseguição)
 > **Visão:** `docs/visao/GDD.md` · **Decisões:** `docs/decisoes/`
 
 ## 1. Objetivo
@@ -45,7 +45,7 @@ Todos os números abaixo são **valores iniciais** e vivem em `src/core/balance.
 | 5 | Canhão | 5 | 2 |
 | 6+ | (Canhão +N) | ×1,2 por nível | 2 |
 
-Projéteis voam a 300 px/s. *(Revisado após playtest de 2026-10-03: a cadência escalava rápido demais; a progressão das armas vem principalmente do dano. Em 2026-10-04: 700 px/s era rápido demais e 200 px/s lento demais; o bônus após o Canhão caiu de ×1,5 para ×1,2 por nível.)*
+Projéteis voam a 450 px/s. *(Revisado após playtest de 2026-10-03: a cadência escalava rápido demais; a progressão das armas vem principalmente do dano. Em 2026-10-04: 700 px/s era rápido demais e 200 px/s lento demais; o bônus após o Canhão caiu de ×1,5 para ×1,2 por nível; na terceira rodada, 300 → 450 px/s para compensar hordas mais densas.)*
 
 O pool de projéteis comporta o pior caso (unidades desenhadas × tiros/s × tempo de voo até sair da tela): nenhum tiro é descartado em silêncio.
 
@@ -71,6 +71,12 @@ Aparece no caminho. Sobe a arma +1 se a tropa passar por ela **ou** se receber p
 *(Vidas dobradas após playtest de 2026-10-03; tabela revisada e crescimento por distância acrescentado após o de 2026-10-04.)*
 
 Comuns e fortes somem ao encostar. Se o encontro remove mais heróis do que a tropa tem, `count` vai a 0.
+
+**Tamanho:** o comum tem o tamanho de um Recruta (raio 10 px); o forte, raio 32 px; o chefão, raio 70 px.
+
+**Perseguição (ADR 0025):** enquanto estão na tela e acima da linha da tropa, os monstros também andam de lado em direção ao x da tropa, sem ultrapassá-lo: comum a 30 px/s, forte a 45 px/s, chefão a 20 px/s. Depois de passar da linha da tropa, seguem retos. Como a tropa se move muito mais rápido (até 2200 px/s), desviar continua possível, mas exige tempo certo: deixar um monstro passar deixa de ser grátis.
+
+**Chefão que alcança a tropa:** se o chefão chegar à linha da tropa (y da tropa) sem ter sido derrotado, mesmo sem encostar, é fim de jogo. *(Corrige uma partida travada: desviando do chefão, ele saía da tela e o caminho ficava parado para sempre.)*
 
 ### 4.6 Trechos (geração procedural)
 O caminho é uma sequência de trechos. Um **sorteador ponderado** escolhe o próximo **molde**, preenche seus parâmetros com o RNG e aplica as **travas de justiça**.
@@ -98,7 +104,7 @@ O caminho é uma sequência de trechos. Um **sorteador ponderado** escolhe o pr�
 
 **Portão bom (ADR 0023):** o tipo é sorteado com peso 1 para `+N`, `Arma +1` e `+1 Cavaleiro` (este só a partir do trecho 8), e peso `1 ÷ (1 + pressão)` para o `xN`. Com pressão ≥ 2 o multiplicador é sempre `x2`.
 
-**Horda:** cada trecho gasta um **orçamento de ameaça** = `8 + 3 × índiceDoTrecho` + o extra da pressão (custo: comum = 1, forte = 8; fortes a partir do trecho 2). Os monstros chegam em **2 ou 3 ondas agrupadas** por trecho (não espalhados pelo trecho inteiro).
+**Horda:** cada trecho gasta um **orçamento de ameaça** = `13 + 5 × índiceDoTrecho` + o extra da pressão (custo: comum = 1, forte = 8; fortes a partir do trecho 2). Os monstros chegam em **2 ou 3 ondas agrupadas** por trecho (não espalhados pelo trecho inteiro).
 
 **Valores de portão:**
 - `+N`: N entre 3 e `3 + índice` (só a distância; com tropa grande ele fica relativamente pequeno e quem escala são os multiplicadores).
@@ -123,11 +129,19 @@ O caminho rola a 120 px/s no trecho 1, crescendo 2% por trecho até +50% (alcan�
 `score = metrosPercorridos + pontosDeMonstros + bônusDeChefões`. Recorde salvo localmente (localStorage, atrás da interface `SaveStore`).
 
 ### 4.9 Ponte (área jogável) — ADR 0022
-- O caminho é uma **ponte** de 480 px de largura centrada na tela de 720 px (x de 120 a 600). Fora dela, as laterais são desenhadas como água/abismo e nada acontece ali.
-- Duas faixas: esquerda (centro x = 240) e direita (centro x = 480), divididas em x = 360. Cada portão tem 220 px de largura.
-- O centro da tropa fica preso entre x = 150 e x = 570.
-- Monstros nascem entre 10% e 90% da largura da ponte (x de 168 a 552); a caixa de arma, entre 30% e 70%; o chefão, no centro.
+- O caminho é uma **ponte** de 420 px de largura centrada na tela de 720 px (x de 150 a 570). Fora dela, as laterais são desenhadas como água/abismo e nada acontece ali.
+- Duas faixas: esquerda (centro x = 255) e direita (centro x = 465), divididas em x = 360. Cada portão tem 190 px de largura.
+- O centro da tropa fica preso entre x = 180 e x = 540.
+- Monstros nascem entre 5% e 95% da largura da ponte (x de 171 a 549): não há borda segura. A caixa de arma nasce entre 30% e 70%; o chefão, no centro.
+- *(Terceira rodada do playtest de 2026-10-04: 480 → 420 px e 10–90% → 5–95%, junto com ~60% mais monstros no orçamento da horda.)*
 - Rótulos de portão que não cabem na largura do portão são reduzidos até caber.
+
+### 4.10 Feixe — ADR 0024
+- **Carga:** cada monstro derrotado por **projétil** enche a barra do feixe em `custo ÷ (orçamentoDaHorda × 2)`, onde o orçamento é o da horda do trecho em que o monstro nasceu (`hordeBudget`; no trecho do chefão, `threatBudget`). Ou seja, a barra enche ao derrotar o equivalente a **2 hordas inteiras**, com ritmo parecido do começo ao fim da partida. O valor de carga é calculado no core e viaja no spawn, como a vida.
+- **Disparo:** automático assim que a barra enche. Enquanto o feixe está ativo, nada carrega a barra (nem tiros, nem o próprio feixe); ela recomeça do zero quando o feixe acaba.
+- **Forma:** uma coluna de **100 px** de largura, centrada na tropa, da tropa até o topo da tela, que dura **1,5 s** e **segue a tropa** (dá para varrer a ponte arrastando).
+- **Efeito:** comuns e fortes que tocam a coluna, acima da linha da tropa, morrem na hora (dão os pontos normais). O **chefão** perde **25% da vida máxima**, uma única vez por feixe, mas o feixe nunca o deixa com menos de 1 de vida: o golpe final é sempre dos tiros. Portões e caixa de arma não são afetados (ADR 0009). Os tiros normais continuam durante o feixe.
+- **Na tela:** uma barra de carga no HUD e a coluna luminosa enquanto o feixe dura. No modo debug, `__horde.fillBeam()` enche a barra.
 
 ## 5. Arquitetura
 
