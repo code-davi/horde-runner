@@ -117,6 +117,14 @@ export const BOSS = {
 /** Abaixo desta distância lateral o perseguidor para de corrigir (evita tremer no lugar), em px. */
 export const CHASE_DEADZONE_PX = 2;
 
+/** Feixe (ADR 0024): enche com 2 hordas abatidas; coluna de 100 px por 1,5 s; tira 25% da vida do chefão. */
+export const BEAM = {
+  hordesToCharge: 2,
+  widthPx: 100,
+  durationMs: 1500,
+  bossDamageShare: 0.25,
+} as const;
+
 /** Comuns e fortes ganham 5% da vida base por trecho percorrido (ADR 0023). */
 export const ENEMY_HP_GROWTH_PER_CHUNK = 0.05;
 

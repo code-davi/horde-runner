@@ -14,6 +14,7 @@ import {
   subtractGateRange,
   threatBudget,
 } from './balance';
+import { killCharge } from './beam';
 import type { Chunk, EnemySpawn, GatePlacement } from './chunks';
 import {
   hordeBudget,
@@ -70,20 +71,22 @@ export function fillHorde(ctx: ChunkContext, rng: Rng): EnemySpawn[] {
   const strongChance = strongEnemyChance(pressureLevel(ctx.troopCount));
   const waveCenters = createWaveCenters(rng);
   const spawns: EnemySpawn[] = [];
-  let budget = hordeBudget(ctx.index, ctx.troopCount);
+  const fullBudget = hordeBudget(ctx.index, ctx.troopCount);
+  let budget = fullBudget;
   while (budget >= ENEMIES.common.cost && spawns.length < MAX_HORDE_SPAWNS_PER_CHUNK) {
     const strong = canSpawnStrong && budget >= ENEMIES.strong.cost && rng.next() < strongChance;
     const kind: EnemyKind = strong ? 'strong' : 'common';
-    spawns.push(spawnInWave({ kind, hp: enemyHp(kind, ctx.index) }, rng.pick(waveCenters), rng));
+    const enemy = { kind, hp: enemyHp(kind, ctx.index), charge: killCharge(kind, fullBudget) };
+    spawns.push(spawnInWave(enemy, rng.pick(waveCenters), rng));
     budget -= ENEMIES[kind].cost;
   }
   return spawns;
 }
 
-/** Horda leve que acompanha o chefão: só comuns, numa onda. */
+/** Horda leve que acompanha o chefão: só comuns, numa onda, sem carregar o feixe (ADR 0024). */
 export function bossHorde(index: number, rng: Rng): EnemySpawn[] {
   const count = Math.floor(threatBudget(index) / BOSS_HORDE_BUDGET_DIVISOR);
-  const common = { kind: 'common', hp: enemyHp('common', index) } as const;
+  const common = { kind: 'common', hp: enemyHp('common', index), charge: 0 } as const;
   return Array.from({ length: count }, () => spawnInWave(common, 0.5, rng));
 }
 
@@ -92,7 +95,11 @@ function createWaveCenters(rng: Rng): number[] {
   return Array.from({ length: waves }, (_, wave) => (wave + 0.5) / waves);
 }
 
-function spawnInWave(enemy: Pick<EnemySpawn, 'kind' | 'hp'>, center: number, rng: Rng): EnemySpawn {
+function spawnInWave(
+  enemy: Omit<EnemySpawn, 'x' | 'offset'>,
+  center: number,
+  rng: Rng,
+): EnemySpawn {
   const offset = center + (rng.next() - 0.5) * HORDE_WAVE_SPREAD;
   const [minX, maxX] = ENEMY_SPAWN_X_RANGE;
   const x = minX + rng.next() * (maxX - minX);

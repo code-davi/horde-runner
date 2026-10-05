@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { HORDE_WAVE_SPREAD, MAX_HORDE_SPAWNS_PER_CHUNK } from '../../src/core/balance';
+import { killCharge } from '../../src/core/beam';
 import { bossHorde, fillHorde, fillTemplate } from '../../src/core/chunkTemplates';
+import { hordeBudget } from '../../src/core/difficulty';
 import { enemyHp } from '../../src/core/enemies';
 import type { Gate } from '../../src/core/gates';
 import { createRng } from '../../src/core/rng';
@@ -115,6 +117,14 @@ describe('fillHorde', () => {
     spawns.forEach((spawn) => expect(spawn.hp).toBe(enemyHp(spawn.kind, 12)));
   });
 
+  it('gives each monster its share of the beam charge', () => {
+    const spawns = fillHorde({ index: 12, troopCount: 300 }, createRng(5));
+
+    spawns.forEach((spawn) =>
+      expect(spawn.charge).toBe(killCharge(spawn.kind, hordeBudget(12, 300))),
+    );
+  });
+
   it('sends more strong enemies to a bigger troop', () => {
     const strongShare = (troop: number): number => {
       const spawns = Array.from({ length: 200 }, (_, run) =>
@@ -135,5 +145,9 @@ describe('bossHorde', () => {
     spawns.forEach((spawn) =>
       expect(spawn).toMatchObject({ kind: 'common', hp: enemyHp('common', 16) }),
     );
+  });
+
+  it('never charges the beam during the boss encounter', () => {
+    bossHorde(16, createRng(3)).forEach((spawn) => expect(spawn.charge).toBe(0));
   });
 });

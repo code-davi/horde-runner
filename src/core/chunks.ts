@@ -31,6 +31,8 @@ export interface GatePlacement {
 export interface EnemySpawn {
   readonly kind: EnemyKind;
   readonly hp: number;
+  /** Fração da barra do feixe que o monstro vale ao ser abatido por projétil (ADR 0024). */
+  readonly charge: number;
   readonly x: number;
   readonly offset: number;
 }
