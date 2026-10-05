@@ -20,7 +20,7 @@ Construir uma versão jogável no navegador (desktop e celular via rede local), 
 1. Abre o jogo → tela "Toque para começar" com o recorde.
 2. Partida: tropa começa com 1 Recruta e arma nível 1. Arrasta o dedo para mover; tiro automático.
 3. Fim de jogo → tela com score, recorde e "Jogar de novo" (um toque reinicia).
-4. Jogo pausa automaticamente se a aba/app perder o foco.
+4. Jogo pausa automaticamente se a aba/app perder o foco, ou quando o jogador toca no **botão de pausa** (⏸, canto superior direito, abaixo do score); um toque em qualquer lugar retoma.
 
 ## 4. Regras detalhadas
 
@@ -183,7 +183,7 @@ URL `?seed=<n>` fixa a seed da partida. `?debug` mostra hitboxes, FPS, `count`, 
 
 ## 7. Tratamento de casos especiais
 
-- Perda de foco (aba/app) → pausa; volta com "toque para continuar".
+- Perda de foco (aba/app) ou botão de pausa → pausa com "Pausado · toque para continuar"; qualquer toque retoma. Tocar no botão não move a tropa (o arrasto é relativo). A área de toque do botão tem 80 × 80 px lógicos.
 - `localStorage` indisponível ou save ilegível → recorde = 0, jogo segue normalmente.
 - `count` nunca negativo; divisões arredondam para baixo.
 

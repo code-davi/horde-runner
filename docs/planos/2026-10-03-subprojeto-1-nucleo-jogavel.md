@@ -645,3 +645,26 @@
 - [ ] **Step 6: Verificar** com `?seed=1&debug`: abater monstros enche a barra; cheia, a coluna aparece por 1,5 s, segue a tropa e limpa a horda; no chefão, a barra não enche e um feixe tira 25% sem matar. `npm run check` e `npm run test:e2e` → PASS.
 - [ ] **Step 7:** Escrever `12-medidor-e-habilidade-especial.md` (o que é um medidor de habilidade; por que medir em hordas; analogia: _token bucket_ de rate limiting; onde está; mexa e veja: `BEAM`).
 - [ ] **Step 8: Commits** — `feat(core): carga e regras do feixe`; `feat(game): feixe que limpa uma coluna à frente da tropa`; `docs(aprendendo): medidor e habilidade especial`.
+
+---
+
+### Task 15e: Botão de pausa
+
+> Pedido do autor após o playtest de 2026-10-04. Spec §3 (item 4) e §7. Linear: DAV-20.
+
+**Files:**
+
+- Create: `src/game/pause.ts` (substitui `src/game/pauseOnBlur.ts`), `src/game/views/PauseButton.ts`
+- Modify: `src/game/sceneMarker.ts`, `src/game/scenes/RunScene.ts`, `tests/e2e/smoke.spec.ts`, `docs/aprendendo/02-cenas.md`
+
+**Interfaces:**
+
+- `pause.ts`: `export function installPauseOnBlur(scene: Phaser.Scene): void`; `export function pauseUntilTap(scene: Phaser.Scene): void` — ignora se a cena já não está ativa; overlay "Pausado · toque para continuar"; marca `data-paused`.
+- `sceneMarker.ts`: `export function markPaused(paused: boolean): void` (`document.body.dataset.paused`).
+- `PauseButton`: `constructor(scene: Phaser.Scene, onPress: () => void)` — ⏸ em (GAME_WIDTH − 64, 130), área de toque 80 × 80, dispara em `pointerdown`.
+
+- [ ] **Step 1: Teste que falha** (smoke): `?seed=1`, tocar no botão (posição lógica 656 × 130 convertida para o canvas) → `body[data-paused="true"]`; tocar de novo no próprio botão → `body[data-paused="false"]` e continua assim após 500 ms; sem erros no console.
+- [ ] **Step 2:** `npm run test:e2e` → FAIL (não há botão nem `data-paused`).
+- [ ] **Step 3:** Implementar `pause.ts`, `markPaused`, `PauseButton` e ligar na `RunScene`. **Step 4:** `npm run check` e `npm run test:e2e` → PASS.
+- [ ] **Step 5:** Nota em `02-cenas.md` (cena pausada não recebe toques; por isso o "continuar" é ouvido no canvas).
+- [ ] **Step 6: Commit** — `feat(game): botão de pausa`.
