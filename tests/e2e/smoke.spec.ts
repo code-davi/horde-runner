@@ -44,7 +44,8 @@ test('survives a giant troop that exhausts the projectile pool', async ({ page }
   const errors = collectErrors(page);
 
   await startRun(page, '?seed=1&debug');
-  await callHook(page, (hooks) => hooks.setTroop(5000, 6));
+  // 99.999 heróis = 100 unidades desenhadas (o teto) × 2 tiros/s × ~4 s de voo ≈ 800 projéteis no ar.
+  await callHook(page, (hooks) => hooks.setTroop(99_999, 6));
   await page.waitForTimeout(15_000);
 
   expect(errors).toEqual([]);
