@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { bossHp, bossPoints, bossWalkSpeed, enemyDef, enemyHp } from '../../src/core/enemies';
+import {
+  bossHp,
+  bossPoints,
+  bossReachedTroop,
+  bossWalkSpeed,
+  enemyDef,
+  enemyHp,
+} from '../../src/core/enemies';
 
 describe('enemyDef', () => {
   it('a strong enemy removes 20 heroes on contact', () => {
@@ -8,6 +15,21 @@ describe('enemyDef', () => {
 
   it('a common enemy removes 2 heroes and has 10 base hp', () => {
     expect(enemyDef('common')).toMatchObject({ heroesLost: 2, hp: 10 });
+  });
+});
+
+describe('size and chase', () => {
+  it('a common enemy is the size of a recruit and chases slowly', () => {
+    expect(enemyDef('common')).toMatchObject({ radius: 10, steer: 30 });
+  });
+
+  it('a strong enemy chases faster', () => {
+    expect(enemyDef('strong').steer).toBe(45);
+  });
+
+  it('the boss reaches the troop once it gets to the troop line', () => {
+    expect(bossReachedTroop(1099)).toBe(false);
+    expect(bossReachedTroop(1100)).toBe(true);
   });
 });
 

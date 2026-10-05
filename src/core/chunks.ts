@@ -27,7 +27,7 @@ export interface GatePlacement {
   readonly gate: Gate;
 }
 
-/** `x` em [0.1, 0.9] da largura da ponte; `offset` em [0, 1) do comprimento do trecho; `hp` já com a distância. */
+/** `x` em `ENEMY_SPAWN_X_RANGE` da largura da ponte; `offset` em [0, 1) do comprimento do trecho; `hp` já com a distância. */
 export interface EnemySpawn {
   readonly kind: EnemyKind;
   readonly hp: number;

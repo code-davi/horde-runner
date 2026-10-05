@@ -2,6 +2,7 @@ import {
   BOSS_HORDE_BUDGET_DIVISOR,
   DIVIDE_VALUES,
   ENEMIES,
+  ENEMY_SPAWN_X_RANGE,
   MAX_HORDE_SPAWNS_PER_CHUNK,
   HORDE_WAVES,
   HORDE_WAVE_SPREAD,
@@ -93,7 +94,9 @@ function createWaveCenters(rng: Rng): number[] {
 
 function spawnInWave(enemy: Pick<EnemySpawn, 'kind' | 'hp'>, center: number, rng: Rng): EnemySpawn {
   const offset = center + (rng.next() - 0.5) * HORDE_WAVE_SPREAD;
-  return { ...enemy, x: 0.1 + rng.next() * 0.8, offset: Math.min(Math.max(offset, 0), 0.999) };
+  const [minX, maxX] = ENEMY_SPAWN_X_RANGE;
+  const x = minX + rng.next() * (maxX - minX);
+  return { ...enemy, x, offset: Math.min(Math.max(offset, 0), 0.999) };
 }
 
 function randomLane(rng: Rng): Lane {

@@ -1,4 +1,10 @@
-import { BOSS, ENEMIES, ENEMY_BASE_WALK_SPEED, ENEMY_HP_GROWTH_PER_CHUNK } from './balance';
+import {
+  BOSS,
+  ENEMIES,
+  ENEMY_BASE_WALK_SPEED,
+  ENEMY_HP_GROWTH_PER_CHUNK,
+  SQUAD_Y,
+} from './balance';
 
 /** Definição de um tipo de monstro (uma linha em `ENEMIES`, ADR 0017). */
 export interface EnemyDef {
@@ -10,6 +16,8 @@ export interface EnemyDef {
   /** Custo no orçamento de ameaça do trecho. */
   readonly cost: number;
   readonly radius: number;
+  /** Velocidade lateral com que persegue a tropa, em px/s (ADR 0025). */
+  readonly steer: number;
 }
 
 /** Tipos de monstro, derivados da tabela: adicionar uma linha cria um tipo novo. */
@@ -37,4 +45,9 @@ export function bossPoints(bossNumber: number): number {
 /** Velocidade própria do chefão, em px/s (com o caminho parado, é só ela que conta). */
 export function bossWalkSpeed(): number {
   return ENEMY_BASE_WALK_SPEED * BOSS.speed;
+}
+
+/** O chefão chegou à linha da tropa: mesmo sem encostar, a partida acaba (ADR 0025). */
+export function bossReachedTroop(bossY: number): boolean {
+  return bossY >= SQUAD_Y;
 }

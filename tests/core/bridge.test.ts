@@ -12,16 +12,16 @@ import { bridgeX } from '../../src/core/bridge';
 
 describe('bridgeX', () => {
   it('maps a fraction of the bridge to a screen x', () => {
-    expect(bridgeX(0)).toBe(120);
+    expect(bridgeX(0)).toBe(150);
     expect(bridgeX(0.5)).toBe(360);
-    expect(bridgeX(1)).toBe(600);
+    expect(bridgeX(1)).toBe(570);
   });
 });
 
 describe('bridge layout', () => {
-  it('is 480 px wide and centered on the 720 px screen', () => {
-    expect(BRIDGE_LEFT_X).toBe(120);
-    expect(BRIDGE_RIGHT_X).toBe(600);
+  it('is 420 px wide and centered on the 720 px screen', () => {
+    expect(BRIDGE_LEFT_X).toBe(150);
+    expect(BRIDGE_RIGHT_X).toBe(570);
     expect(LANE_SPLIT_X).toBe(360);
   });
 

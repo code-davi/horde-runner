@@ -94,6 +94,20 @@ describe('fillHorde', () => {
     }
   });
 
+  it('spreads the horde over 5% to 95% of the bridge', () => {
+    const rng = createRng(13);
+    const xs = Array.from({ length: 200 }, () =>
+      fillHorde({ index: 10, troopCount: 30 }, rng).map((spawn) => spawn.x),
+    ).flat();
+
+    xs.forEach((x) => {
+      expect(x).toBeGreaterThanOrEqual(0.05);
+      expect(x).toBeLessThanOrEqual(0.95);
+    });
+    expect(xs.some((x) => x < 0.1)).toBe(true);
+    expect(xs.some((x) => x > 0.9)).toBe(true);
+  });
+
   it('spawns each monster with the hp of its chunk', () => {
     const spawns = fillHorde({ index: 12, troopCount: 300 }, createRng(5));
 

@@ -73,11 +73,11 @@ describe('templateWeights', () => {
 
 describe('hordeBudget', () => {
   it('uses only the distance while the troop is small', () => {
-    expect(hordeBudget(1, 10)).toBe(11);
+    expect(hordeBudget(1, 10)).toBe(18);
   });
 
   it('adds 25% of the troop once the pressure starts', () => {
-    expect(hordeBudget(1, 500)).toBe(136);
+    expect(hordeBudget(1, 500)).toBe(143);
   });
 
   it('never decreases along the run', () => {
