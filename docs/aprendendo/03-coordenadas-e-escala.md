@@ -22,9 +22,9 @@ A diferença em relação ao CSS é que não existe "layout responsivo": o jogo 
 
 ## Área jogável não é a tela inteira: a ponte
 
-A tela lógica tem 720 px de largura, mas o jogo só acontece numa **ponte** de 480 px no meio dela (x de 120 a 600, ADR 0022). As laterais são cenário. Estreitar o caminho deixa as hordas mais densas e tira a rota de fuga pelas bordas.
+A tela lógica tem 720 px de largura, mas o jogo só acontece numa **ponte** de 420 px no meio dela (x de 150 a 570, ADR 0022; começou com 480 px e foi estreitada no playtest). As laterais são cenário. Estreitar o caminho deixa as hordas mais densas e tira a rota de fuga pelas bordas.
 
-Para que a largura da ponte seja **um número só**, o gerador de trechos não fala em pixels: ele sorteia posições como **frações da ponte** (`x = 0,1` é perto da borda esquerda, `x = 0,9` perto da direita). Só na hora de pôr o monstro no mundo a fração vira pixel, com `bridgeX(fração) = 120 + fração × 480`. Se a ponte mudar de largura, o gerador nem fica sabendo.
+Para que a largura da ponte seja **um número só**, o gerador de trechos não fala em pixels: ele sorteia posições como **frações da ponte** (`x = 0,05` é perto da borda esquerda, `x = 0,95` perto da direita). Só na hora de pôr o monstro no mundo a fração vira pixel, com `bridgeX(fração) = 150 + fração × 420`. Se a ponte mudar de largura, o gerador nem fica sabendo.
 
 **Analogia web:** é como posicionar com porcentagem dentro de um container (`left: 10%`) em vez de `left: 48px`. O container (a ponte) pode mudar de tamanho que os filhos continuam no lugar relativo certo. As faixas, os portões e os limites da tropa também derivam de `BRIDGE_WIDTH`, como variáveis CSS calculadas com `calc()`.
 
@@ -42,4 +42,4 @@ Para que a largura da ponte seja **um número só**, o gerador de trechos não f
 1. Abra o jogo no navegador, aperte F12 e ative o modo de dispositivo (ícone de celular). Troque entre aparelhos e veja o jogo escalar mantendo a proporção.
 2. Em `config.ts`, troque `Phaser.Scale.FIT` por `Phaser.Scale.ENVELOP`. O jogo passa a preencher a tela toda, mas corta as bordas. Desfaça.
 3. Em `StartScene`, mude o `y` do título de `GAME_HEIGHT * 0.35` para `0`. O texto fica cortado no topo, porque a origem é o canto superior e o texto é centralizado no ponto.
-4. Em `balance.ts`, troque `BRIDGE_WIDTH` de 480 para 360 e jogue: portões, faixas, monstros e limites da tropa se ajustam sozinhos, e desviar fica bem mais difícil. Desfaça.
+4. Em `balance.ts`, troque `BRIDGE_WIDTH` de 420 para 360 e jogue: portões, faixas, monstros e limites da tropa se ajustam sozinhos, e desviar fica bem mais difícil. Desfaça.
