@@ -9,6 +9,7 @@ import {
   tickBeam,
   type BeamState,
 } from '../../core/beam';
+import { bossOnScreen } from '../../core/enemies';
 import type { Squad } from '../entities/Squad';
 import { BeamView } from '../views/BeamView';
 import type { BossEncounter } from './BossEncounter';
@@ -38,9 +39,11 @@ export class BeamSystem {
     return this.state.charge;
   }
 
-  /** Um projétil abateu um monstro: soma a carga dele (nada carrega com o chefão presente). */
+  /** Um projétil abateu um monstro: soma a carga dele (nada carrega com o chefão na tela). */
   addKillCharge(amount: number): void {
-    this.state = addCharge(this.state, amount, this.deps.boss.activeBoss !== null);
+    const boss = this.deps.boss.activeBoss;
+    const bossPresent = boss !== null && bossOnScreen(boss.y);
+    this.state = addCharge(this.state, amount, bossPresent);
   }
 
   /** Debug: enche a barra e dispara o feixe na hora. */

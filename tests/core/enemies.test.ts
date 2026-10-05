@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   bossHp,
+  bossOnScreen,
   bossPoints,
   bossReachedTroop,
   bossWalkSpeed,
@@ -25,6 +26,11 @@ describe('size and chase', () => {
 
   it('a strong enemy chases faster', () => {
     expect(enemyDef('strong').steer).toBe(45);
+  });
+
+  it('the boss counts as present only once it shows up on screen', () => {
+    expect(bossOnScreen(-71)).toBe(false);
+    expect(bossOnScreen(-70)).toBe(true);
   });
 
   it('the boss reaches the troop once it gets to the troop line', () => {

@@ -51,3 +51,8 @@ export function bossWalkSpeed(): number {
 export function bossReachedTroop(bossY: number): boolean {
   return bossY >= SQUAD_Y;
 }
+
+/** O chefão já apareceu na tela: a partir daí a barra do feixe não carrega (ADR 0024). */
+export function bossOnScreen(bossY: number): boolean {
+  return bossY + BOSS.radius >= 0;
+}
