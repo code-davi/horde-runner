@@ -1,8 +1,8 @@
 import type Phaser from 'phaser';
 import { ENEMY_BASE_WALK_SPEED, ENEMY_POOL_SIZE, OFFSCREEN_MARGIN_PX } from '../../core/balance';
-import { enemyDef, type EnemyKind } from '../../core/enemies';
+import { enemyDef } from '../../core/enemies';
 import { GAME_HEIGHT } from '../dimensions';
-import { Enemy } from '../entities/Enemy';
+import { Enemy, type EnemySpawnAt } from '../entities/Enemy';
 import { ObjectPool } from './ObjectPool';
 
 /** Cria, move e recicla os monstros. Eles descem com a rolagem + a própria caminhada. */
@@ -14,9 +14,9 @@ export class EnemySystem {
   }
 
   /** Um monstro novo, ou `null` se o pool estiver cheio (o spawn é ignorado). */
-  spawn(kind: EnemyKind, x: number, y: number): Enemy | null {
+  spawn(at: EnemySpawnAt): Enemy | null {
     const enemy = this.pool.acquire();
-    enemy?.spawn(kind, x, y);
+    enemy?.spawn(at);
     return enemy;
   }
 

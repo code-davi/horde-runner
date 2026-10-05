@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bossHp, bossPoints, bossWalkSpeed, enemyDef } from '../../src/core/enemies';
+import { bossHp, bossPoints, bossWalkSpeed, enemyDef, enemyHp } from '../../src/core/enemies';
 
 describe('enemyDef', () => {
   it('a strong enemy removes 20 heroes on contact', () => {
@@ -8,6 +8,18 @@ describe('enemyDef', () => {
 
   it('a common enemy removes 2 heroes and has 10 base hp', () => {
     expect(enemyDef('common')).toMatchObject({ heroesLost: 2, hp: 10 });
+  });
+});
+
+describe('enemyHp', () => {
+  it('starts at the base hp on chunk 1', () => {
+    expect(enemyHp('common', 1)).toBe(10);
+    expect(enemyHp('strong', 1)).toBe(100);
+  });
+
+  it('grows 5% of the base hp per chunk', () => {
+    expect(enemyHp('common', 11)).toBeCloseTo(15);
+    expect(enemyHp('strong', 21)).toBeCloseTo(200);
   });
 });
 

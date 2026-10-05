@@ -93,6 +93,9 @@ export const ENEMIES = {
 
 export const BOSS = { baseHp: 1000, hpGrowth: 1.6, speed: 0.35, pointsPerBoss: 500, radius: 70 };
 
+/** Comuns e fortes ganham 5% da vida base por trecho percorrido (ADR 0023). */
+export const ENEMY_HP_GROWTH_PER_CHUNK = 0.05;
+
 /** Velocidade de caminhada de um inimigo com `speed` 1, em px/s (somada à rolagem). */
 export const ENEMY_BASE_WALK_SPEED = 50;
 /** Quantos px de rolagem valem 1 metro no score. */

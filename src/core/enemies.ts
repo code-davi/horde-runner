@@ -1,4 +1,4 @@
-import { BOSS, ENEMIES, ENEMY_BASE_WALK_SPEED } from './balance';
+import { BOSS, ENEMIES, ENEMY_BASE_WALK_SPEED, ENEMY_HP_GROWTH_PER_CHUNK } from './balance';
 
 /** Definição de um tipo de monstro (uma linha em `ENEMIES`, ADR 0017). */
 export interface EnemyDef {
@@ -17,6 +17,11 @@ export type EnemyKind = keyof typeof ENEMIES;
 
 export function enemyDef(kind: EnemyKind): EnemyDef {
   return ENEMIES[kind];
+}
+
+/** Vida de um monstro nascido no trecho `chunkIndex` (começa em 1): cresce com a distância. */
+export function enemyHp(kind: EnemyKind, chunkIndex: number): number {
+  return ENEMIES[kind].hp * (1 + ENEMY_HP_GROWTH_PER_CHUNK * (chunkIndex - 1));
 }
 
 /** Vida do chefão número `bossNumber` (começa em 1). */

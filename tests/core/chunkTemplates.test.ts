@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HORDE_WAVE_SPREAD, MAX_HORDE_SPAWNS_PER_CHUNK } from '../../src/core/balance';
-import { fillHorde, fillTemplate } from '../../src/core/chunkTemplates';
+import { bossHorde, fillHorde, fillTemplate } from '../../src/core/chunkTemplates';
+import { enemyHp } from '../../src/core/enemies';
 import type { Gate } from '../../src/core/gates';
 import { createRng } from '../../src/core/rng';
 
@@ -68,6 +69,13 @@ describe('fillHorde', () => {
     }
   });
 
+  it('spawns each monster with the hp of its chunk', () => {
+    const spawns = fillHorde({ index: 12, troopCount: 300 }, createRng(5));
+
+    expect(spawns.some((spawn) => spawn.kind === 'strong')).toBe(true);
+    spawns.forEach((spawn) => expect(spawn.hp).toBe(enemyHp(spawn.kind, 12)));
+  });
+
   it('sends more strong enemies to a bigger troop', () => {
     const strongShare = (troop: number): number => {
       const spawns = Array.from({ length: 200 }, (_, run) =>
@@ -77,5 +85,16 @@ describe('fillHorde', () => {
     };
 
     expect(strongShare(2000)).toBeGreaterThan(strongShare(10));
+  });
+});
+
+describe('bossHorde', () => {
+  it('spawns commons with the hp of the boss chunk', () => {
+    const spawns = bossHorde(16, createRng(3));
+
+    expect(spawns.length).toBeGreaterThan(0);
+    spawns.forEach((spawn) =>
+      expect(spawn).toMatchObject({ kind: 'common', hp: enemyHp('common', 16) }),
+    );
   });
 });

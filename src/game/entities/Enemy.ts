@@ -5,6 +5,14 @@ import { applyDamage, createHealth, isDepleted, type Health } from '../../core/h
 import type { Poolable } from '../systems/ObjectPool';
 import { styleEnemy } from '../views/EnemyView';
 
+/** Onde e como um monstro nasce: tipo, vida (já com a distância, ADR 0023) e posição na tela. */
+export interface EnemySpawnAt {
+  readonly kind: EnemyKind;
+  readonly hp: number;
+  readonly x: number;
+  readonly y: number;
+}
+
 /** Um monstro. Uma única classe para todos os tipos: o que muda vem de `enemyDef(kind)`. */
 export class Enemy extends Phaser.GameObjects.Arc implements Poolable {
   kind: EnemyKind = 'common';
@@ -14,8 +22,8 @@ export class Enemy extends Phaser.GameObjects.Arc implements Poolable {
     super(scene, 0, 0, enemyDef('common').radius);
   }
 
-  spawn(kind: EnemyKind, x: number, y: number): void {
-    const { hp, radius } = enemyDef(kind);
+  spawn({ kind, hp, x, y }: EnemySpawnAt): void {
+    const { radius } = enemyDef(kind);
     this.kind = kind;
     this.health = createHealth(hp);
     styleEnemy(this, kind, radius);

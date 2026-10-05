@@ -16,7 +16,7 @@ import {
 } from './balance';
 import type { Chunk, EnemySpawn, GatePlacement } from './chunks';
 import { hordeBudget, pressureLevel, strongEnemyChance, type TemplateKind } from './difficulty';
-import type { EnemyKind } from './enemies';
+import { enemyHp, type EnemyKind } from './enemies';
 import { createSumGate, type Gate } from './gates';
 import type { Lane } from './lanes';
 import type { Rng } from './rng';
@@ -66,7 +66,7 @@ export function fillHorde(ctx: ChunkContext, rng: Rng): EnemySpawn[] {
   while (budget >= ENEMIES.common.cost && spawns.length < MAX_HORDE_SPAWNS_PER_CHUNK) {
     const strong = canSpawnStrong && budget >= ENEMIES.strong.cost && rng.next() < strongChance;
     const kind: EnemyKind = strong ? 'strong' : 'common';
-    spawns.push(spawnInWave(kind, rng.pick(waveCenters), rng));
+    spawns.push(spawnInWave({ kind, hp: enemyHp(kind, ctx.index) }, rng.pick(waveCenters), rng));
     budget -= ENEMIES[kind].cost;
   }
   return spawns;
@@ -75,7 +75,8 @@ export function fillHorde(ctx: ChunkContext, rng: Rng): EnemySpawn[] {
 /** Horda leve que acompanha o chefão: só comuns, numa onda. */
 export function bossHorde(index: number, rng: Rng): EnemySpawn[] {
   const count = Math.floor(threatBudget(index) / BOSS_HORDE_BUDGET_DIVISOR);
-  return Array.from({ length: count }, () => spawnInWave('common', 0.5, rng));
+  const common = { kind: 'common', hp: enemyHp('common', index) } as const;
+  return Array.from({ length: count }, () => spawnInWave(common, 0.5, rng));
 }
 
 function createWaveCenters(rng: Rng): number[] {
@@ -83,9 +84,9 @@ function createWaveCenters(rng: Rng): number[] {
   return Array.from({ length: waves }, (_, wave) => (wave + 0.5) / waves);
 }
 
-function spawnInWave(kind: EnemyKind, center: number, rng: Rng): EnemySpawn {
+function spawnInWave(enemy: Pick<EnemySpawn, 'kind' | 'hp'>, center: number, rng: Rng): EnemySpawn {
   const offset = center + (rng.next() - 0.5) * HORDE_WAVE_SPREAD;
-  return { kind, x: 0.1 + rng.next() * 0.8, offset: Math.min(Math.max(offset, 0), 0.999) };
+  return { ...enemy, x: 0.1 + rng.next() * 0.8, offset: Math.min(Math.max(offset, 0), 0.999) };
 }
 
 function randomLane(rng: Rng): Lane {
