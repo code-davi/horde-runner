@@ -13,13 +13,14 @@ import { clampDelta } from '../../core/time';
 import { applyGate, isDefeated, takeHit, upgradeWeapon, type TroopState } from '../../core/troop';
 import { weaponStats } from '../../core/weapons';
 import { createBrowserSaveStore } from '../../platform/storage';
-import { installPauseOnBlur } from '../pauseOnBlur';
+import { installPauseOnBlur, pauseUntilTap } from '../pause';
 import { RunFeedback } from '../RunFeedback';
 import { RunWorld } from '../RunWorld';
 import { markScene } from '../sceneMarker';
 import { DebugOverlay } from '../systems/DebugOverlay';
 import type { UrlOptions } from '../urlOptions';
 import { Hud } from '../views/Hud';
+import { addPauseButton } from '../views/PauseButton';
 import type { GameOverData } from './GameOverScene';
 
 /** A partida: liga os eventos do mundo às regras do core e cuida do score e do fim de jogo. */
@@ -52,6 +53,7 @@ export class RunScene extends Phaser.Scene {
     this.hud = new Hud(this);
     this.debug = options.debug ? this.enableDebug() : null;
     installPauseOnBlur(this);
+    addPauseButton(this, () => pauseUntilTap(this));
     markScene('Run');
   }
 

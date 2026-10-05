@@ -1,4 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { GAME_WIDTH } from '../../src/game/dimensions';
+
+/** Centro do botão de pausa, em coordenadas lógicas (spec §3, item 4). */
+const PAUSE_BUTTON = { x: GAME_WIDTH - 64, y: 130 };
 
 /** Ganchos expostos pela RunScene quando a URL tem `?debug`. */
 interface DebugHooks {
@@ -24,6 +28,32 @@ async function startRun(page: Page, query: string): Promise<void> {
   await expect(page.locator('body[data-scene="Run"]')).toBeAttached();
 }
 
+type TapInput = 'mouse' | 'touch';
+
+/** Toca num ponto dado em coordenadas lógicas do jogo (720 × 1280), seja qual for a escala do canvas. */
+async function tapGame(
+  page: Page,
+  point: { x: number; y: number },
+  input: TapInput,
+): Promise<void> {
+  const box = await page.locator('canvas').boundingBox();
+  if (!box) throw new Error('canvas sem tamanho');
+  const scale = box.width / GAME_WIDTH;
+  const [x, y] = [box.x + point.x * scale, box.y + point.y * scale];
+  await (input === 'touch' ? page.touchscreen.tap(x, y) : page.mouse.click(x, y));
+}
+
+/** Pausa pelo botão ⏸ e retoma tocando no próprio botão, que não pode pausar de novo. */
+async function pauseAndResumeWithButton(page: Page, input: TapInput): Promise<void> {
+  await tapGame(page, PAUSE_BUTTON, input);
+  await expect(page.locator('body[data-paused="true"]')).toBeAttached();
+  await page.waitForTimeout(300);
+  await tapGame(page, PAUSE_BUTTON, input);
+  await expect(page.locator('body[data-paused="false"]')).toBeAttached();
+  await page.waitForTimeout(500);
+  await expect(page.locator('body[data-paused="false"]')).toBeAttached();
+}
+
 async function callHook(page: Page, run: (hooks: DebugHooks) => void): Promise<void> {
   await page.evaluate((source) => {
     const hooks = (window as unknown as { __horde: DebugHooks }).__horde;
@@ -39,6 +69,28 @@ test('plays 10 seconds of a seeded run without errors', async ({ page }) => {
 
   expect(errors).toEqual([]);
   await page.screenshot({ path: 'test-results/smoke.png' });
+});
+
+test('the pause button pauses the run and a tap resumes it', async ({ page }) => {
+  const errors = collectErrors(page);
+  await startRun(page, '?seed=1');
+
+  await pauseAndResumeWithButton(page, 'mouse');
+
+  expect(errors).toEqual([]);
+});
+
+test.describe('on a touch screen', () => {
+  test.use({ hasTouch: true });
+
+  test('the pause button also pauses and resumes with taps', async ({ page }) => {
+    const errors = collectErrors(page);
+    await startRun(page, '?seed=1');
+
+    await pauseAndResumeWithButton(page, 'touch');
+
+    expect(errors).toEqual([]);
+  });
 });
 
 test('survives a giant troop that exhausts the projectile pool', async ({ page }) => {

@@ -16,5 +16,8 @@ export const PALETTE = {
   /** Coluna e barra de carga do feixe (ADR 0024). */
   beam: 0x7df9ff,
   projectile: 0xfff3b0,
+  /** Ícones do HUD (botão de pausa) e o fundo translúcido atrás deles. */
+  icon: 0xffffff,
+  iconBackdrop: 0x000000,
   text: '#ffffff',
 } as const;
