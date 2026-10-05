@@ -46,8 +46,9 @@ export class Enemy extends Phaser.GameObjects.Arc implements Poolable {
     return { x: this.x, y: this.y, radius: enemyDef(this.kind).radius };
   }
 
-  setFallSpeed(pxPerSecond: number): void {
-    this.arcadeBody().setVelocity(0, pxPerSecond);
+  /** Velocidade em px/s: `vx` é a perseguição lateral, `vy` a queda (rolagem + caminhada). */
+  move(vx: number, vy: number): void {
+    this.arcadeBody().setVelocity(vx, vy);
   }
 
   kill(): void {

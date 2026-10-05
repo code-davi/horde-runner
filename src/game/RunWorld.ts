@@ -60,7 +60,7 @@ export class RunWorld {
     this.spawner.update(deltaMs);
     this.squad.update(deltaMs, this.drag.targetX);
     this.firing.update(deltaMs, this.squad);
-    this.enemies.update(this.spawner.scrollSpeed);
+    this.enemies.update(this.spawner.scrollSpeed, this.squad.x);
     this.collisions.update();
     this.path.update();
     this.boss.update(deltaMs);
